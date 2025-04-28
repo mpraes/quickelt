@@ -46,7 +46,7 @@ pytest tests/
 
 ## ⚙️ Estrutura do Projeto
 
-.
+```bash
 ├── data/
 │   └── bronze/          # Dados ingeridos
 ├── ingestion/
@@ -69,6 +69,7 @@ pytest tests/
 ├── .gitignore           # Arquivos e diretórios ignorados pelo Git
 ├── README.md            # Este arquivo
 └── requirements.txt     # Dependências Python
+```
 
 ## 📈 Status Atual do Projeto
 
