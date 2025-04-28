@@ -1,0 +1,20 @@
+# Pacotes principais para ingestão de dados
+pandas>=2.2.2
+polars>=0.20.28
+requests>=2.31.0
+sqlalchemy>=2.0.30
+python-dotenv>=1.0.1
+beautifulsoup4>=4.12.3
+
+# Drivers de banco de dados (depende do banco que você quiser usar)
+psycopg2-binary>=2.9.9     # Para PostgreSQL
+pymysql>=1.1.0             # Para MySQL
+cx_Oracle>=8.3.0           # Para Oracle (requer client instalado)
+pyodbc>=5.0.1              # Para MS SQL Server
+
+# Pacotes para testes automáticos
+pytest>=8.2.2
+
+# Outros utilitários (se quiser usar futuramente)
+# tqdm>=4.66.2             # Para barras de progresso
+# tenacity>=8.2.3          # Para retries automáticos

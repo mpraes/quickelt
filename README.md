@@ -42,6 +42,8 @@ source .venv/bin/activate  # Linux/macOS
 pytest tests/
 ```
 
+- [✅ Confira o nosso Checklist de Boas Práticas](CHECKLIST.md)
+
 ## ⚙️ Estrutura do Projeto
 
 .
