@@ -92,11 +92,11 @@ source .venv/bin/activate      # Linux/macOS
 ```bash	
 pip install -r requirements.txt
 ```	
-4️⃣ Configure variáveis de ambiente / Configure environment variables
+4️⃣ (OPCIONAL/OPTIONAL) Configure variáveis de ambiente criando o arquivo .env no diretório raiz. No arquivo .env do repositório tem os exemplos. Use o comando abaixo caso precise. / Configure environment variables by creating a .env file in the root directory. The .env file in the repository contains examples. Use the command below to create the file in case of need.
 ```bash	
-cp .env.example .env
+touch .env
 ```	
-5️⃣ Execute os testes automáticos / Run automatic tests
+5️⃣ (OPCIONAL/OPTIONAL) Execute os testes automáticos / Run automatic tests
 ```bash	
 pytest
 ```	
