@@ -48,7 +48,8 @@ pytest tests/
 
 ```bash
 ├── data/
-│   └── bronze/          # Dados ingeridos
+│   ├── bronze/          # Dados brutos ingeridos
+│   └── silver/          # Dados limpos e transformados
 ├── ingestion/
 │   ├── pandas_templates/
 │   │   ├── api_template.py
@@ -58,10 +59,14 @@ pytest tests/
 │       ├── api_template.py
 │       ├── csv_template.py
 │       └── databases_template.py
-├── metadata/            # Metadados das ingestões
+├── transformation/
+│   └── to_silver/
+│       └── cleaning_template_pandas.py    # Template de limpeza de dados
+├── metadata/            # Metadados das ingestões e transformações
 ├── tests/
 │   ├── test_ingestion_pandas.py
 │   ├── test_ingestion_polars.py
+│   ├── test_transformation.py
 │   └── conftest.py
 ├── utils/
 │   └── logger.py        # Logger bilíngue
@@ -80,10 +85,24 @@ pytest tests/
 - Geração automática de arquivos de dados e metadados organizados por data.
 - Estrutura de testes automáticos completa usando pytest.
 
+### ✅ Iniciada a etapa de Transformação de Dados:
+
+- Template de limpeza de dados usando Pandas (cleaning_template_pandas.py)
+  - Padronização automática de nomes de colunas
+  - Tratamento de valores ausentes
+  - Correção de tipos de dados
+  - Tratamento de outliers
+  - Padronização de texto
+  - Remoção de colunas esparsas
+  - Tratamento de categorias inconsistentes
+  - Documentação bilíngue (EN/PT-BR)
+
 ### 🚧 Próximos Passos:
 
-- Iniciar a etapa de Transformação de Dados (próxima camada).
-- Criar templates de transformação padronizada.
+- Continuar a etapa de Transformação de Dados:
+  - Criar template de limpeza usando Polars
+  - Adicionar templates para transformações específicas
+  - Implementar validações de qualidade de dados
 - Melhorar continuamente o projeto com padrões de Data Engineering modernos.
 
 ## 🤝 Contribuições
