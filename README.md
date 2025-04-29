@@ -1,113 +1,138 @@
-# Data Engineering Project Template
-
-## 📌 Propósito do Projeto
-
-Este projeto foi criado para ajudar **engenheiros de dados** a iniciarem rapidamente seus próprios projetos profissionais.
-
-✅ Aqui você encontrará **templates prontos** para:
-- Ingestão de dados (usando Pandas ou Polars)
-- Padrões de qualidade como nomeação automática de arquivos, geração de metadados e logger bilíngue.
-- Ambiente preparado para testes automatizados (`pytest`) com configuração automática de ambiente (`conftest.py`).
-
-O objetivo é permitir que você:
-- Economize tempo no setup inicial dos seus projetos de dados.
-- Comece seus pipelines já com boas práticas de Engenharia de Dados.
-- Tenha uma estrutura modular e fácil de escalar.
+# 🚀 The Pipeline Craft  
+**Template de Setup para Desenvolvedores de Engenharia de Dados**  
+**Setup Template for Data Engineering Developers**
 
 ---
 
-## 📥 Como baixar e configurar no seu computador
+## 🎯 Sobre o Projeto  / About the Project
 
-**Passo 1**: Clone o repositório
+Este projeto foi criado para ajudar engenheiros de dados a iniciarem seus projetos com agilidade, estrutura e boas práticas desde o início.
 
-```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
-```
+This project was created to help data engineers start their projects with speed, structure, and best practices from day one.
 
-**Passo 2**: Crie e ative um ambiente virtual
+---
 
-# Com venv (padrão Python)
-python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-.venv\Scripts\activate     # Windows
+## ✨ Funcionalidades  /  Features
 
-**Passo 3**: Instale as dependências
+- Templates prontos para ingestão com **Pandas** e **Polars**  
+  Ready-to-use ingestion templates with **Pandas** and **Polars**
 
-**Passo 4**: Configure o arquivo `.env` com suas variáveis de ambiente
+- Geração automática de arquivos e metadados organizados por data  
+  Automatic file and metadata generation organized by date
 
-**Passo 5** (opcional) Execute os testes para validar o ambiente
+- Logger bilíngue e estrutura de testes com Pytest  
+  Bilingual logger and test structure using Pytest
 
-```bash
-pytest tests/
-```
+- Modular, escalável e fácil de adaptar a novos contextos  
+  Modular, scalable, and easy to adapt for new contexts
 
-- [✅ Confira o nosso Checklist de Boas Práticas](CHECKLIST.md)
+---
 
-## ⚙️ Estrutura do Projeto
+## 📁 Estrutura do Projeto  / 📁 Project Structure
 
 ```bash
+PIPELINE_CRAFT/
 ├── data/
-│   ├── bronze/          # Dados brutos ingeridos
-│   └── silver/          # Dados limpos e transformados
+│   ├── bronze/              # Dados brutos / Raw data
+│   ├── silver/              # Dados tratados / Cleaned data
+│   └── gold/                # Dados prontos para consumo / Analytics-ready data
+│
 ├── ingestion/
-│   ├── pandas_templates/
+│   ├── pandas_templates/    # Templates com Pandas / Templates using Pandas
 │   │   ├── api_template.py
 │   │   ├── csv_template.py
-│   │   └── databases_template.py
-│   └── polars_templates/
+│   │   ├── databases_template.py
+│   │   ├── sharepoint_xls_template.py
+│   │   └── web_scraping_template.py
+│   │
+│   └── polars_templates/    # Templates com Polars / Templates using Polars
 │       ├── api_template.py
 │       ├── csv_template.py
-│       └── databases_template.py
+│       ├── databases_template.py
+│       ├── sharepoint_xls_template.py
+│       └── web_scraping_template.py
+│
+├── metadata/                # Metadados das ingestões / Ingestion metadata
+│
+├── tests/
+│   ├── conftest.py
+│   ├── test_ingestion_pandas.py
+│   └── test_ingestion_polars.py
+│
 ├── transformation/
 │   └── to_silver/
-│       └── cleaning_template_pandas.py    # Template de limpeza de dados
-├── metadata/            # Metadados das ingestões e transformações
-├── tests/
-│   ├── test_ingestion_pandas.py
-│   ├── test_ingestion_polars.py
-│   ├── test_transformation.py
-│   └── conftest.py
+│       ├── cleaning_template_duckdb.py   # Template de limpeza com DuckDB / DuckDB cleaning template
+│       ├── cleaning_template_pandas.py   # Template de limpeza com Pandas / Pandas cleaning template
+│       └── cleaning_template_polars.py   # Template de limpeza com Polars / Polars cleaning template
+│
 ├── utils/
-│   └── logger.py        # Logger bilíngue
-├── .env                 # Arquivo de variáveis de ambiente
-├── .gitignore           # Arquivos e diretórios ignorados pelo Git
-├── README.md            # Este arquivo
-└── requirements.txt     # Dependências Python
+│   └── logger.py             # Logger bilíngue / Bilingual logger
+│
+├── .env                      # Variáveis de ambiente / Environment variables
+├── CHECKLIST.md             # Checklist de boas práticas / Best Practices Checklist
+├── README.md
+└── requirements.txt
 ```
 
-## 📈 Status Atual do Projeto
+---
 
-### ✅ Finalizada a primeira etapa de Ingestão de Dados:
+⚙️ Instalação / Installation
+1️⃣ Clone o repositório / Clone the repository
+```bash
+git clone https://github.com/mpraes/pipeline_craft.git
+cd seu-repositorio
+```	
+2️⃣ Crie e ative um ambiente virtual / Create and activate a virtual environment
+```bash	
+python -m venv .venv
+source .venv/bin/activate      # Linux/macOS
+.venv\Scripts\activate         # Windows
+```	
+3️⃣ Instale as dependências / Install dependencies
+```bash	
+pip install -r requirements.txt
+```	
+4️⃣ Configure variáveis de ambiente / Configure environment variables
+```bash	
+cp .env.example .env
+```	
+5️⃣ Execute os testes automáticos / Run automatic tests
+```bash	
+pytest
+```	
+---
 
-- Templates prontos para ingestão de API, CSV, Banco de Dados, SharePoint e Web Scraping.
-- Disponíveis em duas versões: Pandas (focado em simplicidade) e Polars (focado em performance).
-- Geração automática de arquivos de dados e metadados organizados por data.
-- Estrutura de testes automáticos completa usando pytest.
+Visite o [CHECKLIST.md](CHECKLIST.md) para mais informações sobre boas práticas e orientações.  
+Visit the [CHECKLIST.md](CHECKLIST.md) for more information on best practices and guidelines.
 
-### ✅ Iniciada a etapa de Transformação de Dados:
+## 📈 Status Atual / Current Status
 
-- Template de limpeza de dados usando Pandas (cleaning_template_pandas.py)
-  - Padronização automática de nomes de colunas
-  - Tratamento de valores ausentes
-  - Correção de tipos de dados
-  - Tratamento de outliers
-  - Padronização de texto
-  - Remoção de colunas esparsas
-  - Tratamento de categorias inconsistentes
-  - Documentação bilíngue (EN/PT-BR)
+- [x] Templates de ingestão com Pandas e Polars
+- [x] Logger bilíngue
+- [x] Estrutura de testes com Pytest
+- [x] Modular e fácil de adaptar
+- [ ] Templates de transformação de dados (em andamento)
 
-### 🚧 Próximos Passos:
+## 🛠️ Próximos Passos / Next Steps
 
-- Continuar a etapa de Transformação de Dados:
-  - Criar template de limpeza usando Polars
-  - Adicionar templates para transformações específicas
-  - Implementar validações de qualidade de dados
-- Melhorar continuamente o projeto com padrões de Data Engineering modernos.
-
-## 🤝 Contribuições
+- [ ] Adicionar templates de transformação de dados
+- [ ] Melhorar a documentação
+- [ ] Adicionar mais exemplos de uso
+- [ ] Adicionar mais testes automatizados
+- [ ] Aprimorar a estrutura de diretórios
+- [ ] Adicionar mais funcionalidades
+- [ ] Adicionar CI/CD
+- [ ] Configuração de Docker 
+  
 Contribuições são bem-vindas!
+Contributions are welcome!
 
-## 📄 Licença
-Este projeto é de uso livre sob a licença MIT License.
+Solicite adição de contribuidor, e com isso crie uma branch e abra um pull request com sugestões, melhorias ou novos templates. Pode também abrir issues ou até entrar em contato comigo com sugestões.
+Feel free to request contributor access, create a branch, and open a pull request with suggestions, improvements, or new templates. You can also open issues or contact me directly with suggestions.
+
+Distribuído sob a licença MIT.
+Distributed under the MIT license.
+Use livre para fins comerciais ou educacionais.
+Free to use for commercial or educational purposes.
+
 
