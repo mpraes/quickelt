@@ -11,12 +11,16 @@ ORIENTAÇÕES:
 - Salve o resultado como CSV.
 - Gere um arquivo de metadados (.json) organizado por data.
 
+Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
+
 INSTRUCTIONS:
 - Configure environment variables in .env (host, user, password, database, driver, query).
 - Connect to the database using SQLAlchemy.
 - Load data with Pandas.
 - Save as CSV into bronze directory.
 - Generate metadata file (.json) organized by date.
+
+Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
 
 Dependências / Dependencies:
 - pandas

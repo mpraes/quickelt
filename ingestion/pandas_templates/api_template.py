@@ -11,12 +11,16 @@ ORIENTAÇÕES:
 - Salve o resultado como CSV.
 - Gere também um arquivo de metadados (.json) organizado por data.
 
+Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
+
 INSTRUCTIONS:
 - Set API URL and Token in .env.
 - Make the request and load JSON response.
 - Convert to Pandas DataFrame.
 - Save as CSV in bronze directory.
 - Generate metadata file (.json) organized by date.
+
+Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
 
 Dependências / Dependencies:
 - pandas

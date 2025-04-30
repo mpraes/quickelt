@@ -29,6 +29,8 @@ ORIENTAÇÕES:
         - client_id
         - tenant_id
         - client_secret (se for confidencial)
+
+Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
         
 
 INSTRUCTIONS:
@@ -43,6 +45,8 @@ INSTRUCTIONS:
         - client_id
         - tenant_id
         - client_secret (if confidential)
+        
+Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
 
 Dependências / Dependencies:
 - pandas
