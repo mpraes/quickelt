@@ -76,6 +76,43 @@ PIPELINE_CRAFT/
 
 ---
 
+## 📦 Dependências Principais / Main Dependencies
+
+- **Frameworks de Dados / Data Frameworks**
+  - pandas>=2.2.2
+  - polars>=0.20.28
+  - duckdb>=0.9.2
+
+- **Conectores de Banco de Dados / Database Connectors**
+  - sqlalchemy>=2.0.30
+  - psycopg2-binary>=2.9.9 (PostgreSQL)
+  - pymysql>=1.1.0 (MySQL)
+  - cx_Oracle>=8.3.0 (Oracle)
+  - pyodbc>=5.0.1 (MS SQL Server)
+
+- **Integração Microsoft / Microsoft Integration**
+  - msal>=1.26.0
+  - openpyxl>=3.1.2
+
+- **Web Scraping & APIs**
+  - requests>=2.31.0
+  - beautifulsoup4>=4.12.3
+  - lxml>=4.9.3
+
+- **Utilitários / Utilities**
+  - python-dotenv>=1.0.1
+  - tenacity>=8.2.3
+  - tqdm>=4.66.2
+
+- **Formatos de Arquivo / File Formats**
+  - pyarrow>=15.0.1
+  - fastparquet>=2024.2.0
+
+- **Testes / Testing**
+  - pytest>=8.2.2
+
+---
+
 ⚙️ Instalação / Installation
 1️⃣ Clone o repositório / Clone the repository
 ```bash
@@ -107,23 +144,23 @@ Visit the [CHECKLIST.md](CHECKLIST.md) for more information on best practices an
 
 ## 📈 Status Atual / Current Status
 
-- [x] Templates de ingestão com Pandas e Polars
-- [x] Logger bilíngue
-- [x] Estrutura de testes com Pytest
-- [x] Modular e fácil de adaptar
-- [ ] Templates de transformação de dados (em andamento)
+- [x] Templates de ingestão com Pandas e Polars / Ingestion templates with Pandas and Polars
+- [x] Logger bilíngue / Bilingual logger
+- [x] Estrutura de testes com Pytest / Test structure with Pytest
+- [x] Modular e fácil de adaptar / Modular and easy to adapt
+- [x] Template de limpeza de dados (Pandas) / Data cleaning template (Pandas)
+- [ ] Templates de limpeza (Polars/DuckDB) / Cleaning templates (Polars/DuckDB)
+- [ ] Templates de transformação avançada / Advanced transformation templates
 
 ## 🛠️ Próximos Passos / Next Steps
 
-- [ ] Adicionar templates de transformação de dados
-- [ ] Melhorar a documentação
-- [ ] Adicionar mais exemplos de uso
-- [ ] Adicionar mais testes automatizados
-- [ ] Aprimorar a estrutura de diretórios
-- [ ] Adicionar mais funcionalidades
+- [ ] Completar templates de limpeza (Polars/DuckDB)
+- [ ] Adicionar templates de transformação avançada
+- [ ] Melhorar documentação e exemplos
+- [ ] Expandir suite de testes
 - [ ] Adicionar CI/CD
-- [ ] Configuração de Docker 
-  
+- [ ] Configuração de Docker
+
 Contribuições são bem-vindas!
 Contributions are welcome!
 

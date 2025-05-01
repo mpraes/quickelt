@@ -12,9 +12,18 @@ pymysql>=1.1.0             # Para MySQL
 cx_Oracle>=8.3.0           # Para Oracle (requer client instalado)
 pyodbc>=5.0.1              # Para MS SQL Server
 
+# Pacotes para SharePoint e Azure
+msal>=1.26.0               # Para autenticação Microsoft
+openpyxl>=3.1.2           # Para leitura de arquivos Excel
+
 # Pacotes para testes automáticos
 pytest>=8.2.2
 
-# Outros utilitários (se quiser usar futuramente)
-# tqdm>=4.66.2             # Para barras de progresso
-# tenacity>=8.2.3          # Para retries automáticos
+# Utilitários
+tenacity>=8.2.3           # Para retries automáticos
+tqdm>=4.66.2              # Para barras de progresso
+lxml>=4.9.3               # Para parsing HTML (usado com beautifulsoup4)
+
+# Formatos de arquivo
+pyarrow>=15.0.1           # Para arquivos Parquet
+fastparquet>=2024.2.0     # Alternativa para Parquet
