@@ -1,0 +1,100 @@
+# Makefile para Pipeline Craft - Databases Ingestion Templates
+# Testes e Execução de Scripts
+# Tests and Scripts Execution
+
+# ---------------- Testes / Tests ----------------
+
+# Rodar todos os testes
+test:
+	pytest tests
+
+# Rodar apenas os testes de ingestion de databases (Pandas)
+test_pandas_databases:
+	pytest tests/test_ingestion_databases_pandas_functions.py
+
+# Rodar apenas os testes de ingestion de databases (Polars)
+test_polars_databases:
+	pytest tests/test_ingestion_databases_polars_functions.py
+
+# Rodar testes gerais dos templates Pandas
+test_pandas_templates:
+	pytest tests/test_ingestion_pandas.py
+
+# Rodar testes gerais dos templates Polars
+test_polars_templates:
+	pytest tests/test_ingestion_polars.py
+
+# Rodar um teste específico
+test_one:
+	pytest $(FILE)
+
+# ---------------- Execução de Scripts / Run Scripts ----------------
+
+# Rodar script de ingestion de banco de dados com Pandas
+run_pandas_database:
+	python ingestion/pandas_templates/databases_template.py
+
+# Rodar script de ingestion de banco de dados com Polars
+run_polars_database:
+	python ingestion/polars_templates/databases_template.py
+
+# Rodar ingestion API (Pandas)
+run_pandas_api:
+	python ingestion/pandas_templates/api_template.py
+
+# Rodar ingestion API (Polars)
+run_polars_api:
+	python ingestion/polars_templates/api_template.py
+
+# Rodar ingestion SharePoint CSV (Pandas)
+run_pandas_sharepoint_csv:
+	python ingestion/pandas_templates/sharepoint_csv_template.py
+
+# Rodar ingestion SharePoint XLS (Pandas)
+run_pandas_sharepoint_xls:
+	python ingestion/pandas_templates/sharepoint_xls_template.py
+
+# Rodar ingestion SharePoint CSV (Polars)
+run_polars_sharepoint_csv:
+	python ingestion/polars_templates/sharepoint_csv_template.py
+
+# Rodar ingestion SharePoint XLS (Polars)
+run_polars_sharepoint_xls:
+	python ingestion/polars_templates/sharepoint_xls_template.py
+
+# Rodar ingestion Web Scraping (Pandas)
+run_pandas_web_scraping:
+	python ingestion/pandas_templates/web_scraping_template.py
+
+# Rodar ingestion Web Scraping (Polars)
+run_polars_web_scraping:
+	python ingestion/polars_templates/web_scraping_template.py
+
+# ---------------- Utilidades / Utilities ----------------
+
+# Limpar __pycache__ e arquivos temporários
+clean:
+	find . -type d -name "__pycache__" -exec rm -r {} + || true
+	find . -type f -name "*.pyc" -delete || true
+	find . -type f -name "*.pyo" -delete || true
+
+# Mostrar ajuda
+help:
+	@echo "Comandos disponíveis / Available commands:"
+	@echo "  make test                       -> Roda todos os testes / Run all tests"
+	@echo "  make test_pandas_databases       -> Testar ingestion de databases (Pandas)"
+	@echo "  make test_polars_databases       -> Testar ingestion de databases (Polars)"
+	@echo "  make test_pandas_templates       -> Testar ingestion templates (Pandas)"
+	@echo "  make test_polars_templates       -> Testar ingestion templates (Polars)"
+	@echo "  make test_one FILE=caminho::teste -> Rodar teste específico / Run specific test"
+	@echo "  make run_pandas_database         -> Rodar ingestion de banco Pandas / Run Pandas database ingestion"
+	@echo "  make run_polars_database         -> Rodar ingestion de banco Polars / Run Polars database ingestion"
+	@echo "  make run_pandas_api              -> Rodar ingestion API Pandas / Run Pandas API ingestion"
+	@echo "  make run_polars_api              -> Rodar ingestion API Polars / Run Polars API ingestion"
+	@echo "  make run_pandas_sharepoint_csv   -> Rodar ingestion SharePoint CSV Pandas"
+	@echo "  make run_pandas_sharepoint_xls   -> Rodar ingestion SharePoint XLS Pandas"
+	@echo "  make run_polars_sharepoint_csv   -> Rodar ingestion SharePoint CSV Polars"
+	@echo "  make run_polars_sharepoint_xls   -> Rodar ingestion SharePoint XLS Polars"
+	@echo "  make run_pandas_web_scraping     -> Rodar ingestion Web Scraping Pandas"
+	@echo "  make run_polars_web_scraping     -> Rodar ingestion Web Scraping Polars"
+	@echo "  make clean                       -> Limpar pycache / Clean pycache and temp files"

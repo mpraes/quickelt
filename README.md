@@ -4,6 +4,23 @@
 
 ---
 
+## 🧭 Índice / Table of Contents
+
+- [🚀 The Pipeline Craft](#-the-pipeline-craft)
+  - [🧭 Índice / Table of Contents](#-índice--table-of-contents)
+  - [🎯 Sobre o Projeto  / About the Project](#-sobre-o-projeto---about-the-project)
+  - [✨ Funcionalidades  /  Features](#-funcionalidades----features)
+  - [📁 Estrutura do Projeto  / 📁 Project Structure](#-estrutura-do-projeto----project-structure)
+  - [📦 Dependências Principais / Main Dependencies](#-dependências-principais--main-dependencies)
+    - [🔹 Rodar testes específicos / Run specific tests](#-rodar-testes-específicos--run-specific-tests)
+    - [Rodar scripts de ingestão diretamente / Run ingestion scripts directly](#rodar-scripts-de-ingestão-diretamente--run-ingestion-scripts-directly)
+    - [Limpar arquivos temporários / Clean temporary files](#limpar-arquivos-temporários--clean-temporary-files)
+- [📋 Atualização para "📈 Status Atual / Current Status"](#-atualização-para--status-atual--current-status)
+  - [📈 Status Atual / Current Status](#-status-atual--current-status)
+  - [🛠️ Próximos Passos / Next Steps](#️-próximos-passos--next-steps)
+
+---
+
 ## 🎯 Sobre o Projeto  / About the Project
 
 Este projeto foi criado para ajudar engenheiros de dados a iniciarem seus projetos com agilidade, estrutura e boas práticas desde o início.
@@ -57,7 +74,9 @@ PIPELINE_CRAFT/
 ├── tests/
 │   ├── conftest.py
 │   ├── test_ingestion_pandas.py
-│   └── test_ingestion_polars.py
+│   ├── test_ingestion_polars.py
+│   ├── test_ingestion_databases_pandas_functions.py
+│   └── test_ingestion_databases_polars_functions.py
 │
 ├── transformation/
 │   └── to_silver/
@@ -139,27 +158,112 @@ pytest
 ```	
 ---
 
+---
+
+## ⚙️ Executando Testes e Scripts / Running Tests and Scripts
+
+Este projeto já possui um **Makefile** configurado para facilitar a execução dos testes e dos scripts de ingestão.
+
+This project already includes a **Makefile** configured to make it easy to run tests and ingestion scripts.
+
+### 🔹 Rodar todos os testes / Run all tests
+
+```bash
+make test
+```
+
+### 🔹 Rodar testes específicos / Run specific tests
+
+Rodar apenas os testes de ingestion de banco de dados com Pandas / Run only the database ingestion tests with Pandas:
+
+```bash
+make test_pandas_databases
+```
+
+Rodar apenas os testes de ingestion de banco de dados com Polars / Run only the database ingestion tests with Polars:
+
+```bash
+make test_polars_databases
+```
+
+Rodar apenas os testes gerais dos templates Pandas / Run only the general tests for the Pandas templates:
+
+```bash
+make test_pandas_templates
+```
+
+Rodar apenas os testes gerais dos templates Polars / Run only the general tests for the Polars templates:
+
+```bash
+make test_polars_templates
+```
+
+### Rodar scripts de ingestão diretamente / Run ingestion scripts directly
+
+Rodar ingestion de banco usando Pandas / Run database ingestion with Pandas:
+
+```bash
+make run_pandas_database
+```
+
+Rodar ingestion de banco usando Polars / Run database ingestion with Polars:
+
+```bash
+make run_polars_database
+```
+
+### Limpar arquivos temporários / Clean temporary files
+
+```bash
+make clean
+```	
+
+Caso precise de ajuda com os comandos disponíveis / If you need help with the available commands:
+
+```bash
+make help
+```
+
+---
+
 Visite o [CHECKLIST.md](CHECKLIST.md) para mais informações sobre boas práticas e orientações.  
 Visit the [CHECKLIST.md](CHECKLIST.md) for more information on best practices and guidelines.
 
+
+---
+
+# 📋 Atualização para "📈 Status Atual / Current Status"
+
+Sugestão de atualização para refletir melhor o que você já conquistou e o que pode fazer nos próximos passos:
+
 ## 📈 Status Atual / Current Status
 
-- [x] Templates de ingestão com Pandas e Polars / Ingestion templates with Pandas and Polars
-- [x] Logger bilíngue / Bilingual logger
-- [x] Estrutura de testes com Pytest / Test structure with Pytest
-- [x] Modular e fácil de adaptar / Modular and easy to adapt
-- [x] Template de limpeza de dados (Pandas) / Data cleaning template (Pandas)
-- [ ] Templates de limpeza (Polars/DuckDB) / Cleaning templates (Polars/DuckDB)
-- [ ] Templates de transformação avançada / Advanced transformation templates
+- [x] Templates de ingestão com Pandas e Polars
+- [x] Logger bilíngue para rastreamento dos processos
+- [x] Estrutura completa de testes unitários com Pytest
+- [x] Makefile configurado para rodar testes e scripts facilmente
+- [x] Templates de limpeza de dados (Pandas)
+- [x] Templates de limpeza de dados (Polars e DuckDB - versão inicial)
+- [x] Estrutura modularizada e profissional de ingestão
+- [ ] Templates de transformação avançada (pós-pré-processamento para silver)
+- [ ] Adicionar integração contínua (CI/CD) com GitHub Actions
+- [ ] Criar imagens Docker para ambientes de execução padronizados
+- [ ] Melhorar exemplos de `.env` para múltiplos bancos de dados
+- [ ] Expandir o suporte para autenticação OAuth2 em APIs
+
 
 ## 🛠️ Próximos Passos / Next Steps
 
-- [ ] Completar templates de limpeza (Polars/DuckDB)
-- [ ] Adicionar templates de transformação avançada
-- [ ] Melhorar documentação e exemplos
-- [ ] Expandir suite de testes
-- [ ] Adicionar CI/CD
-- [ ] Configuração de Docker
+- [ ] Finalizar e aprimorar os templates de limpeza de dados para Silver Layer
+- [ ] Criar templates de transformação avançada e derivação de métricas
+- [ ] Adicionar exemplos práticos para consumo via DuckDB e Parquet
+- [ ] Implementar GitHub Actions para rodar testes automaticamente em cada push
+- [ ] Criar imagens Docker padronizadas para ambientes de desenvolvimento/teste
+- [ ] Adicionar documentação de exemplos de pipelines completos (bronze → silver → gold)
+- [ ] Melhorar integração para ingestão de APIs autenticadas (OAuth2, Tokens)
+- [ ] Adicionar versionamento de metadados e histórico de ingestões
+- [ ] Melhorar suporte a falhas com tratamento mais robusto de erros
+
 
 Contribuições são bem-vindas!
 Contributions are welcome!
