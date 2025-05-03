@@ -248,9 +248,9 @@ Sugestão de atualização para refletir melhor o que você já conquistou e o q
 - [ ] Templates de transformação avançada (pós-pré-processamento para silver)
 - [ ] Adicionar integração contínua (CI/CD) com GitHub Actions
 - [ ] Criar imagens Docker para ambientes de execução padronizados
-- [ ] Melhorar exemplos de `.env` para múltiplos bancos de dados
+- [x] Melhorar exemplos de `.env` para múltiplos bancos de dados
 - [ ] Expandir o suporte para autenticação OAuth2 em APIs
-
+- [x] Aplicação de Contratos de Dados com Pydantic
 
 ## 🛠️ Próximos Passos / Next Steps
 

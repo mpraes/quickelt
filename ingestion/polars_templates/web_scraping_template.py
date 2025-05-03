@@ -56,7 +56,7 @@ from dotenv import load_dotenv
 
 from utils.logger import setup_logger
 from utils.pydantic_validation_template_polars import validate_with_pydantic_batch
-from contracts.data_contracts import ProductWebScrapingContract
+from contracts.data_contracts_template import ProductWebScrapingContract
 
 # Setup
 logger = setup_logger("webscraping_ingestion_polars_template")
