@@ -1,227 +1,192 @@
 """
-Databases Ingestion Template PRO usando Pandas
+Database Ingestion Template using Pandas
 
-Este é um template profissional para conectar a bancos de dados relacionais (PostgreSQL, MySQL, OracleSQL, MSSQL)
-utilizando Pandas, com gravação flexível em CSV ou Parquet, tentativas automáticas de conexão e execução,
-validação de variáveis de ambiente e geração automática de metadados.
+Este é um template profissional para ingerir dados de banco de dados utilizando Pandas,
+armazenar os dados no diretório bronze e gerar automaticamente um arquivo de metadados.
 
 ORIENTAÇÕES:
-- Configure as variáveis de ambiente no arquivo .env (DB_TYPE, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE, DB_QUERY, OUTPUT_FORMAT).
-- Conecte ao banco de dados utilizando SQLAlchemy.
-- Execute a consulta SQL.
-- Carregue os dados usando Pandas.
-- Salve o resultado no formato especificado (CSV ou Parquet) no diretório bronze.
-- Gere automaticamente um arquivo de metadados (.json) organizado por data.
+- Defina a string de conexão e a consulta SQL no arquivo .env ou diretamente no código.
+- Execute a consulta e carregue os dados como DataFrame Pandas.
+- Valide usando contratos Pydantic (Data Contracts).
+- Salve o resultado como CSV.
+- Gere também um arquivo de metadados (.json) organizado por data.
 
-Obs: Para mais boas práticas e orientações, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
-
-Dependências:
-- pandas
-- sqlalchemy
-- psycopg2 / pymysql / oracledb / pyodbc
-- python-dotenv
-- tenacity
-
-
-Databases Ingestion Template PRO using Pandas
-
-This is a professional template to connect to relational databases (PostgreSQL, MySQL, OracleSQL, MSSQL)
-using Pandas, with flexible saving in CSV or Parquet, automatic retry on connection and query execution,
-environment variable validation, and automatic metadata generation.
+Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
 
 INSTRUCTIONS:
-- Configure environment variables in the .env file (DB_TYPE, DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_DATABASE, DB_QUERY, OUTPUT_FORMAT).
-- Connect to the database using SQLAlchemy.
-- Execute the SQL query.
-- Load data with Pandas.
-- Save the result in the specified format (CSV or Parquet) into the bronze directory.
-- Automatically generate a metadata file (.json) organized by date.
+- Set the database connection string and SQL query in the .env file or directly in the code.
+- Execute the query and load the data into a Pandas DataFrame.
+- Validate using Pydantic Data Contracts.
+- Save as CSV in bronze directory.
+- Generate metadata file (.json) organized by date.
 
-Note: For more best practices and guidance, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
+Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
 
-Dependencies:
+Fluxo de Execução / Execution Flow:
+-----------------------------------
+
+[PT-BR]
+1. A função `ingest_database(connection_string, query)` é chamada para executar uma consulta SQL e carregar os dados como um DataFrame Pandas.
+2. O DataFrame carregado é passado para a função `validate_dataframe(df)`, que valida os dados utilizando um modelo Pydantic.
+3. Se a validação for bem-sucedida, o DataFrame validado é enviado para a função `save_data_and_metadata(df, origin, framework)`.
+4. A função `save_data_and_metadata` salva o DataFrame em formato CSV no diretório bronze e gera um arquivo de metadados JSON.
+
+[EN]
+1. The `ingest_database(connection_string, query)` function is called to execute a SQL query and load the data into a Pandas DataFrame.
+2. The loaded DataFrame is passed to the `validate_dataframe(df)` function, which validates the data using a Pydantic model.
+3. If validation succeeds, the validated DataFrame is sent to the `save_data_and_metadata(df, origin, framework)` function.
+4. The `save_data_and_metadata` function saves the DataFrame as a CSV in the bronze directory and generates a JSON metadata file.
+
+Dependências / Dependencies:
 - pandas
 - sqlalchemy
-- psycopg2 / pymysql / oracledb / pyodbc
+- pydantic
 - python-dotenv
-- tenacity
-
-Fluxo de Ingestão de Dados / Data Ingestion Flow:
-
-[validate_env_variables()]
-        ↓
-[build_connection_string()]
-        ↓
-[connect_to_database()]
-        ↓
-[load_data()]
-        ↓
-[generate_file_paths()]
-        ↓
-[save_dataframe()]
-        ↓
-[generate_metadata()]
 """
 
 import os
-import pandas as pd
 import json
+import pandas as pd
 from sqlalchemy import create_engine
 from datetime import datetime
 from dotenv import load_dotenv
+
 from utils.logger import setup_logger
-from tenacity import retry, stop_after_attempt, wait_fixed
+from utils.pydantic_validation import validate_with_pydantic_batch
+from contracts.data_contracts import CustomerDatabaseContract  # Ajuste conforme seu contrato real
 
 # Setup
-logger = setup_logger("databases_ingestion_modular_template")
+logger = setup_logger("database_ingestion_pandas_template")
 load_dotenv()
 
-# Constantes / Constants
+# Constantes
 BRONZE_PATH = "./data/bronze/"
-REQUIRED_ENV_VARS = [
-    "DB_TYPE", "DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD",
-    "DB_DATABASE", "DB_QUERY", "OUTPUT_FORMAT"
-]
 
-# ------------------- Funções Auxiliares / Helper Functions -------------------
+def generate_file_paths(origin: str, framework: str) -> tuple:
+    """
+    Gera os caminhos para salvar o arquivo de dados e o arquivo de metadados.
+    Generate the paths to save the data file and the metadata file.
 
-def validate_env_variables():
-    """
-    Valida as variáveis de ambiente obrigatórias.
-    Validate required environment variables.
-    """
-    missing = [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]
-    if missing:
-        raise EnvironmentError(f"Variáveis faltando / Missing environment variables: {', '.join(missing)}")
+    Args:
+        origin (str): origem dos dados / data origin
+        framework (str): framework utilizado / framework used
 
-def build_connection_string() -> str:
-    """
-    Constrói a connection string baseada nas variáveis de ambiente.
-    Build the connection string based on environment variables.
-    """
-    db_type = os.getenv("DB_TYPE").lower()
-    host = os.getenv("DB_HOST")
-    port = os.getenv("DB_PORT")
-    user = os.getenv("DB_USER")
-    password = os.getenv("DB_PASSWORD")
-    database = os.getenv("DB_DATABASE")
-
-    if db_type == "postgresql":
-        return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
-    elif db_type == "mysql":
-        return f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
-    elif db_type == "oracle":
-        return f"oracle+oracledb://{user}:{password}@{host}:{port}/{database}"
-    elif db_type == "mssql":
-        return f"mssql+pyodbc://{user}:{password}@{host}:{port}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
-    else:
-        raise ValueError("Tipo de banco inválido / Invalid database type")
-
-def connect_to_database(connection_string: str):
-    """
-    Cria o objeto engine de conexão com o banco de dados.
-    Create SQLAlchemy engine for database connection.
-    """
-    return create_engine(connection_string)
-
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(5))
-def load_data(query: str, engine) -> pd.DataFrame:
-    """
-    Executa a consulta SQL e carrega o DataFrame com tentativas automáticas.
-    Execute SQL query and load DataFrame with automatic retries.
-    """
-    return pd.read_sql_query(query, engine)
-
-def generate_file_paths(origem: str, formato: str) -> tuple:
-    """
-    Gera os caminhos dos arquivos de dados e metadados.
-    Generate paths for data and metadata files.
+    Returns:
+        tuple: output_data_file, output_metadata_file, file_name, timestamp
     """
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    nome_arquivo = f"{origem}_{formato}_{timestamp}"
+    file_name = f"{origin}_{framework}_{timestamp}"
 
-    output_data_file = os.path.join(BRONZE_PATH, nome_arquivo)
+    output_data_file = os.path.join(BRONZE_PATH, f"{file_name}.csv")
 
     today = datetime.now()
     metadata_dir = os.path.join("metadata", str(today.year), f"{today.month:02d}", f"{today.day:02d}")
     os.makedirs(metadata_dir, exist_ok=True)
-    output_metadata_file = os.path.join(metadata_dir, f"{nome_arquivo}_metadata.json")
+    output_metadata_file = os.path.join(metadata_dir, f"{file_name}_metadata.json")
 
-    return output_data_file, output_metadata_file, nome_arquivo, timestamp
+    return output_data_file, output_metadata_file, file_name, timestamp
 
-def save_dataframe(df: pd.DataFrame, output_path: str, format_: str):
+def ingest_database(connection_string: str, query: str) -> pd.DataFrame:
     """
-    Salva o DataFrame no formato especificado (CSV ou Parquet).
-    Save DataFrame in the specified format (CSV or Parquet).
-    """
-    if format_ == "csv":
-        df.to_csv(f"{output_path}.csv", index=False)
-    elif format_ == "parquet":
-        df.to_parquet(f"{output_path}.parquet", index=False)
-    else:
-        raise ValueError("Formato de saída inválido / Invalid output format")
+    Executa uma consulta SQL e retorna DataFrame.
+    Executes a SQL query and returns a DataFrame.
 
-def generate_metadata(df: pd.DataFrame, query: str, output_file: str, output_metadata_file: str, output_format: str, origem: str, formato: str, timestamp: str):
-    """
-    Gera e salva o arquivo de metadados (.json).
-    Generate and save metadata file (.json).
-    """
-    metadata = {
-        "origem": origem,
-        "formato": formato,
-        "timestamp": timestamp,
-        "status": "success",
-        "query": query,
-        "output_file": f"{output_file}.{output_format}",
-        "quantidade_linhas": df.shape[0],
-        "quantidade_colunas": df.shape[1]
-    }
-    with open(output_metadata_file, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=4)
+    Args:
+        connection_string (str): string de conexão / connection string
+        query (str): consulta SQL / SQL query
 
-# ------------------- Função Principal / Main Function -------------------
-
-def ingest():
+    Returns:
+        pd.DataFrame: DataFrame carregado / loaded DataFrame
     """
-    Função principal: executa todo o processo de ingestão de dados.
-    Main function: executes the full data ingestion process.
-    """
-    origem = "database"
-    formato = "pandas"
-
     try:
-        logger.info("Validando variáveis de ambiente / Validating environment variables")
-        validate_env_variables()
+        engine = create_engine(connection_string)
+        df = pd.read_sql(query, engine)
+        logger.info(f"Consulta SQL retornou {df.shape[0]} linhas e {df.shape[1]} colunas / SQL query returned {df.shape[0]} rows and {df.shape[1]} columns")
+        return df
+    except Exception as e:
+        logger.error(f"Erro ao executar consulta: {str(e)} / Error executing query: {str(e)}")
+        return None
 
-        logger.info("Construindo connection string / Building connection string")
-        connection_string = build_connection_string()
+def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Valida o DataFrame usando contrato Pydantic.
+    Validate the DataFrame using a Pydantic contract.
 
-        logger.info(f"Conectando ao banco de dados / Connecting to database {os.getenv('DB_TYPE')}")
-        engine = connect_to_database(connection_string)
+    Args:
+        df (pd.DataFrame): DataFrame a ser validado / DataFrame to validate
 
-        query = os.getenv("DB_QUERY")
-        output_format = os.getenv("OUTPUT_FORMAT").lower()
+    Returns:
+        pd.DataFrame: DataFrame validado / validated DataFrame
+    """
+    try:
+        if df is None:
+            raise ValueError("DataFrame vazio para validação / Empty DataFrame for validation")
 
-        logger.info("Carregando dados / Loading data")
-        df = load_data(query=query, engine=engine)
-
-        logger.info(f"Dados carregados: {df.shape[0]} linhas / Data loaded: {df.shape[0]} rows")
-
-        os.makedirs(BRONZE_PATH, exist_ok=True)
-        output_data_file, output_metadata_file, nome_arquivo, timestamp = generate_file_paths(origem, formato)
-
-        logger.info(f"Salvando arquivo no formato {output_format} / Saving file in {output_format} format")
-        save_dataframe(df, output_data_file, output_format)
-
-        logger.info("Gerando metadados / Generating metadata")
-        generate_metadata(df, query, output_data_file, output_metadata_file, output_format, origem, formato, timestamp)
-
-        logger.info("Processo de ingestão concluído com sucesso / Ingestion process successfully completed")
+        validated_df = validate_with_pydantic_batch(df, CustomerDatabaseContract)
+        return validated_df
 
     except Exception as e:
-        logger.error(f"Erro durante a ingestão: {str(e)} / Error during ingestion: {str(e)}")
+        logger.error(f"Erro na validação dos dados: {str(e)} / Error validating data: {str(e)}")
+        return None
 
-# ------------------- Execução Direta / Direct Execution -------------------
+def save_data_and_metadata(df: pd.DataFrame, origin: str, framework: str) -> bool:
+    """
+    Salva o DataFrame validado e gera metadados.
+    Save the validated DataFrame and generate metadata.
+
+    Args:
+        df (pd.DataFrame): DataFrame validado / validated DataFrame
+        origin (str): origem dos dados / data source origin
+        framework (str): framework utilizado / framework used
+
+    Returns:
+        bool: True se sucesso / True if successful
+    """
+    try:
+        if df is None:
+            logger.error("DataFrame vazio / Empty DataFrame")
+            return False
+
+        output_data_file, output_metadata_file, file_name, timestamp = generate_file_paths(origin, framework)
+
+        df.to_csv(output_data_file, index=False)
+        logger.info(f"Dados salvos: {output_data_file} / Data saved: {output_data_file}")
+
+        metadata = {
+            "origin": origin,
+            "framework": framework,
+            "timestamp": timestamp,
+            "status": "success",
+            "data_file": output_data_file,
+            "rows": df.shape[0],
+            "columns": df.shape[1],
+            "columns_types": df.dtypes.astype(str).to_dict()
+        }
+
+        with open(output_metadata_file, "w", encoding="utf-8") as f:
+            json.dump(metadata, f, ensure_ascii=False, indent=4)
+
+        logger.info(f"Metadados salvos: {output_metadata_file} / Metadata saved: {output_metadata_file}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Erro ao salvar dados/metadados: {str(e)} / Error saving data/metadata: {str(e)}")
+        return False
 
 if __name__ == "__main__":
-    ingest()
+    # Exemplo de execução / Example of execution
+    try:
+        connection_string = os.getenv("DB_CONNECTION_STRING")
+        query = os.getenv("SQL_QUERY")
+        origin = "database"
+        framework = "pandas"
+
+        df = ingest_database(connection_string, query)
+        if df is not None:
+            os.makedirs(BRONZE_PATH, exist_ok=True)
+            validated_df = validate_dataframe(df)
+            if validated_df is not None:
+                save_data_and_metadata(validated_df, origin, framework)
+
+    except Exception as e:
+        logger.error(f"Erro na execução principal: {str(e)} / Error in main execution: {str(e)}")

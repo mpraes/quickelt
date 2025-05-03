@@ -1,123 +1,225 @@
 """
 SharePoint XLS Ingestion Template using Pandas
 
-Este é um template profissional para baixar arquivos XLS(X) do SharePoint, 
-utilizando Pandas, armazenar os dados no diretório bronze e gerar automaticamente um arquivo de metadados.
+Este é um template profissional para baixar arquivos XLS/XLSX do SharePoint,
+armazenar os dados no diretório bronze e gerar automaticamente um arquivo de metadados.
 
 ORIENTAÇÕES:
-- Defina a URL do arquivo e o Token no .env.
-- Baixe o arquivo via requests.
-- Leia o conteúdo como DataFrame Pandas.
+- Defina a URL do arquivo no SharePoint e o Token de Acesso no arquivo .env.
+- Faça o download do arquivo Excel.
+- Carregue a planilha como DataFrame Pandas.
+- Valide usando contratos Pydantic (Data Contracts).
 - Salve o resultado como CSV.
-- Gere um arquivo de metadados (.json) organizado por data.
+- Gere também um arquivo de metadados (.json) organizado por data.
 
 Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
 
 INSTRUCTIONS:
-- Set the file URL and Token in .env.
-- Download the file via requests.
-- Load as Pandas DataFrame.
-- Save as CSV into bronze directory.
+- Set the SharePoint file URL and Access Token in the .env file.
+- Download the Excel file.
+- Load the spreadsheet into a Pandas DataFrame.
+- Validate using Pydantic Data Contracts.
+- Save as CSV in bronze directory.
 - Generate metadata file (.json) organized by date.
 
 Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
 
+Fluxo de Execução / Execution Flow:
+-----------------------------------
+
+[PT-BR]
+1. A função `download_sharepoint_xls(url, token)` é chamada para baixar o arquivo XLS/XLSX do SharePoint.
+2. O arquivo baixado é carregado usando a função `load_excel_file(file_path)`, que retorna um DataFrame Pandas.
+3. O DataFrame é passado para `validate_dataframe(df)`, que valida usando um modelo Pydantic.
+4. Se a validação for bem-sucedida, o DataFrame validado é enviado para `save_data_and_metadata(df, origin, framework)`.
+
+[EN]
+1. The `download_sharepoint_xls(url, token)` function is called to download the XLS/XLSX file from SharePoint.
+2. The downloaded file is loaded using `load_excel_file(file_path)`, returning a Pandas DataFrame.
+3. The DataFrame is passed to `validate_dataframe(df)`, which validates it using a Pydantic model.
+4. If validation succeeds, the validated DataFrame is sent to `save_data_and_metadata(df, origin, framework)`.
+
 Dependências / Dependencies:
 - pandas
 - requests
+- pydantic
 - python-dotenv
 """
 
 import os
+import json
 import requests
 import pandas as pd
-import io
-import json
 from datetime import datetime
 from dotenv import load_dotenv
 
 from utils.logger import setup_logger
+from utils.pydantic_validation_template_pandas import validate_with_pydantic_batch
+from contracts.data_contracts_template import ProductAPIContract 
 
 # Setup
-logger = setup_logger("sharepoint_ingestion_pandas_template")
+logger = setup_logger("sharepoint_xls_ingestion_pandas_template")
 load_dotenv()
 
 # Constantes
 BRONZE_PATH = "./data/bronze/"
+TEMP_PATH = "./data/temp/"
 
-def generate_file_paths(origem: str, formato: str) -> tuple:
+os.makedirs(BRONZE_PATH, exist_ok=True)
+os.makedirs(TEMP_PATH, exist_ok=True)
+
+def generate_file_paths(origin: str, framework: str) -> tuple:
     """
     Gera os caminhos para salvar o arquivo de dados e o arquivo de metadados.
+    Generate the paths to save the data file and the metadata file.
+
+    Args:
+        origin (str): origem dos dados / data source origin
+        framework (str): framework utilizado / framework used
+
+    Returns:
+        tuple: output_data_file, output_metadata_file, file_name, timestamp
     """
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    nome_arquivo = f"{origem}_{formato}_{timestamp}"
+    file_name = f"{origin}_{framework}_{timestamp}"
 
-    output_data_file = os.path.join(BRONZE_PATH, f"{nome_arquivo}.csv")
+    output_data_file = os.path.join(BRONZE_PATH, f"{file_name}.csv")
 
     today = datetime.now()
     metadata_dir = os.path.join("metadata", str(today.year), f"{today.month:02d}", f"{today.day:02d}")
     os.makedirs(metadata_dir, exist_ok=True)
-    output_metadata_file = os.path.join(metadata_dir, f"{nome_arquivo}_metadata.json")
+    output_metadata_file = os.path.join(metadata_dir, f"{file_name}_metadata.json")
 
-    return output_data_file, output_metadata_file, nome_arquivo, timestamp
+    return output_data_file, output_metadata_file, file_name, timestamp
 
-def ingest():
+def download_sharepoint_xls(url: str, token: str) -> str:
     """
-    Função principal para baixar arquivo do SharePoint, salvar dados + metadados usando Pandas.
-    Main function to download file from SharePoint and save data + metadata using Pandas.
+    Baixa arquivo XLS/XLSX do SharePoint para pasta temporária.
+    Download XLS/XLSX file from SharePoint to temp folder.
+
+    Args:
+        url (str): URL do arquivo no SharePoint
+        token (str): Token de acesso / Access token
+
+    Returns:
+        str: Caminho do arquivo baixado / Path to the downloaded file
     """
-
-    origem = "sharepoint"
-    formato = "pandas"
-
-    url = os.getenv("SP_FILE_URL")
-    token = os.getenv("SP_TOKEN")
-
-    if not url:
-        logger.error("SP_FILE_URL não definida no .env / SP_FILE_URL not defined in .env")
-        return
-
-    headers = {
-        "Authorization": f"Bearer {token}"
-    } if token else {}
-
     try:
-        logger.info(f"Baixando arquivo do SharePoint: {url} / Downloading file from SharePoint: {url}")
+        headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
-        logger.info("Arquivo baixado com sucesso, lendo como DataFrame Pandas / File downloaded successfully, reading as Pandas DataFrame")
-        df = pd.read_excel(io.BytesIO(response.content))
+        filename = os.path.join(TEMP_PATH, "downloaded_file.xlsx")
+        with open(filename, "wb") as f:
+            f.write(response.content)
 
-        logger.info(f"DataFrame Pandas carregado com {df.shape[0]} linhas e {df.shape[1]} colunas / Pandas DataFrame loaded with {df.shape[0]} rows and {df.shape[1]} columns")
+        logger.info(f"Arquivo baixado para: {filename} / File downloaded to: {filename}")
+        return filename
 
-        os.makedirs(BRONZE_PATH, exist_ok=True)
+    except Exception as e:
+        logger.error(f"Erro ao baixar arquivo do SharePoint: {str(e)} / Error downloading file from SharePoint: {str(e)}")
+        return None
 
-        output_data_file, output_metadata_file, nome_arquivo, timestamp = generate_file_paths(origem, formato)
+def load_excel_file(file_path: str) -> pd.DataFrame:
+    """
+    Carrega arquivo Excel para DataFrame Pandas.
+    Load Excel file into a Pandas DataFrame.
+
+    Args:
+        file_path (str): Caminho do arquivo / File path
+
+    Returns:
+        pd.DataFrame: DataFrame carregado / loaded DataFrame
+    """
+    try:
+        df = pd.read_excel(file_path)
+        logger.info(f"Arquivo Excel carregado com {df.shape[0]} linhas e {df.shape[1]} colunas / Excel file loaded with {df.shape[0]} rows and {df.shape[1]} columns")
+        return df
+    except Exception as e:
+        logger.error(f"Erro ao carregar arquivo Excel: {str(e)} / Error loading Excel file: {str(e)}")
+        return None
+
+def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Valida o DataFrame usando contrato Pydantic.
+    Validate the DataFrame using a Pydantic contract.
+
+    Args:
+        df (pd.DataFrame): DataFrame a ser validado / DataFrame to validate
+
+    Returns:
+        pd.DataFrame: DataFrame validado / validated DataFrame
+    """
+    try:
+        if df is None:
+            raise ValueError("DataFrame vazio para validação / Empty DataFrame for validation")
+
+        validated_df = validate_with_pydantic_batch(df, ProductSharePointContract)
+        return validated_df
+
+    except Exception as e:
+        logger.error(f"Erro na validação dos dados: {str(e)} / Error validating data: {str(e)}")
+        return None
+
+def save_data_and_metadata(df: pd.DataFrame, origin: str, framework: str) -> bool:
+    """
+    Salva o DataFrame validado e gera metadados.
+    Save the validated DataFrame and generate metadata.
+
+    Args:
+        df (pd.DataFrame): DataFrame validado / validated DataFrame
+        origin (str): origem dos dados / data source origin
+        framework (str): framework utilizado / framework used
+
+    Returns:
+        bool: True se sucesso / True if successful
+    """
+    try:
+        if df is None:
+            logger.error("DataFrame vazio / Empty DataFrame")
+            return False
+
+        output_data_file, output_metadata_file, file_name, timestamp = generate_file_paths(origin, framework)
 
         df.to_csv(output_data_file, index=False)
+        logger.info(f"Dados salvos: {output_data_file} / Data saved: {output_data_file}")
 
-        logger.info(f"Dados salvos com sucesso em {output_data_file} / Data successfully saved to {output_data_file}")
-
-        # Gerar metadados
         metadata = {
-            "origem": origem,
-            "formato": formato,
+            "origin": origin,
+            "framework": framework,
             "timestamp": timestamp,
             "status": "success",
-            "sharepoint_url": url,
-            "output_file": output_data_file,
-            "quantidade_linhas": df.shape[0],
-            "quantidade_colunas": df.shape[1]
+            "data_file": output_data_file,
+            "rows": df.shape[0],
+            "columns": df.shape[1],
+            "columns_types": df.dtypes.astype(str).to_dict()
         }
 
         with open(output_metadata_file, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=4)
 
-        logger.info(f"Metadados salvos em {output_metadata_file} / Metadata saved in {output_metadata_file}")
+        logger.info(f"Metadados salvos: {output_metadata_file} / Metadata saved: {output_metadata_file}")
+        return True
 
     except Exception as e:
-        logger.error(f"Erro durante a ingestão do SharePoint: {str(e)} / Error during SharePoint ingestion: {str(e)}")
+        logger.error(f"Erro ao salvar dados/metadados: {str(e)} / Error saving data/metadata: {str(e)}")
+        return False
 
 if __name__ == "__main__":
-    ingest()
+    # Exemplo de execução / Example of execution
+    try:
+        url = os.getenv("SHAREPOINT_XLS_URL")
+        token = os.getenv("SHAREPOINT_TOKEN")
+        origin = "sharepoint_xls"
+        framework = "pandas"
+
+        file_path = download_sharepoint_xls(url, token)
+        if file_path:
+            df = load_excel_file(file_path)
+            if df is not None:
+                validated_df = validate_dataframe(df)
+                if validated_df is not None:
+                    save_data_and_metadata(validated_df, origin, framework)
+
+    except Exception as e:
+        logger.error(f"Erro na execução principal: {str(e)} / Error in main execution: {str(e)}")

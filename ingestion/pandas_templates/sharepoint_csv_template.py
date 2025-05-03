@@ -1,81 +1,82 @@
 """
-Sharepoint CSV Ingestion Template using Pandas
+CSV Ingestion Template using Pandas
 
-Este é um template profissional para carregar arquivos CSV de um servidor Sharepoint utilizando Pandas,
-armazenar os dados no diretório bronze, e gerar automaticamente um arquivo de metadados.
-
-This is a professional template for loading CSV files from a Sharepoint server using Pandas,
-store the data in the bronze directory, and automatically generate a metadata file.
-
-OBJETIVOS:
-- Carregar arquivos de um endereço no sharepoint e trazer para camada bronze.
-- Salvar os dados em formato CSV no diretório bronze.
-- Gerar automaticamente um arquivo de metadados (.json) organizado por data.
-
-OBJECTIVES:
-- Load files from a source sharepoint address and bring them to the bronze layer.
-- Save the data in CSV format in the bronze directory.
-- Automatically generate a metadata file (.json) organized by date.
+Este é um template profissional para ingestão de arquivos CSV utilizando Pandas,
+armazenar os dados no diretório bronze e gerar automaticamente um arquivo de metadados.
 
 ORIENTAÇÕES:
-- Precisa antes registrar o app no Azure Portal da empresa:
-    - Entre no portal.azure.com
-    - Crie um novo registro de aplicativo (Azure AD)
-    - Configure permissões:
-        - Files.ReadAll
-        - Sites.Read.All
-        - offline_access (para refresh token)
-    - Precisa copiar essas informações para o .env
-        - client_id
-        - tenant_id
-        - client_secret (se for confidencial)
+- Defina o caminho do arquivo CSV no .env ou diretamente no código.
+- Carregue o arquivo CSV utilizando Pandas.
+- Valide usando contratos Pydantic (Data Contracts).
+- Salve o resultado como CSV.
+- Gere também um arquivo de metadados (.json) organizado por data.
 
 Obs: Para construir um bom sistema de ingestão de dados, consulte o arquivo INGESTION_MAIN_CONSIDERATIONS.md.
-        
 
 INSTRUCTIONS:
-- Needs to register the app in the Azure Portal of the company before:
-    - Go to portal.azure.com
-    - Create a new application registration (Azure AD)
-    - Configure permissions:
-        - Files.ReadAll
-        - Sites.Read.All
-        - offline_access (for refresh token)
-    - Needs to copy these information to the .env
-        - client_id
-        - tenant_id
-        - client_secret (if confidential)
-        
+- Set the CSV file path in .env or directly in the code.
+- Load the CSV file using Pandas.
+- Validate using Pydantic Data Contracts.
+- Save as CSV in bronze directory.
+- Generate metadata file (.json) organized by date.
+
 Ps: To build a good data ingestion system, consult the INGESTION_MAIN_CONSIDERATIONS.md file.
+
+Fluxo de Execução / Execution Flow:
+-----------------------------------
+
+[PT-BR]
+1. A função `ingest_csv(file_path)` é chamada para ler o arquivo CSV como DataFrame.
+2. O DataFrame carregado é enviado para `validate_dataframe(df)`.
+3. Se a validação for bem-sucedida, o DataFrame validado é enviado para `save_data_and_metadata(df, origin, framework)`.
+
+[EN]
+1. The `ingest_csv(file_path)` function is called to read the CSV file into a DataFrame.
+2. The loaded DataFrame is sent to `validate_dataframe(df)`.
+3. If the validation is successful, the validated DataFrame is sent to `save_data_and_metadata(df, origin, framework)`.
 
 Dependências / Dependencies:
 - pandas
+- pydantic
 - python-dotenv
-- msal
-- requests
-- io
 """
 
-from msal import ConfidentialClientApplication
-import requests
+
 import os
-import pandas as pd
 import json
+import pandas as pd
 from datetime import datetime
-from io import StringIO
 from dotenv import load_dotenv
 
 from utils.logger import setup_logger
+from utils.pydantic_validation import validate_with_pydantic_batch
+from contracts.data_contracts import ProductCSVContract  # Ajuste conforme seu contrato real
 
 # Setup
 logger = setup_logger("csv_ingestion_pandas_template")
+load_dotenv()
 
-def generate_file_paths(origem: str, formato: str, BRONZE_PATH: str) -> tuple:
+# Constantes
+BRONZE_PATH = "./data/bronze/"
+
+def generate_file_paths(origin: str, framework: str) -> tuple:
     """
     Gera os caminhos para salvar o arquivo de dados e o arquivo de metadados.
+    Generate the paths to save the data file and the metadata file.
+
+    Args (PT-BR):
+        origin (str): origem dos dados
+        framework (str): framework utilizado
+
+    Args (EN):
+        origin (str): data source origin
+        framework (str): framework used
+
+    Returns:
+        tuple: output_data_file, output_metadata_file, file_name, timestamp
     """
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    file_name = f"{origem}_{formato}_{timestamp}"
+    file_name = f"{origin}_{framework}_{timestamp}"
 
     output_data_file = os.path.join(BRONZE_PATH, f"{file_name}.csv")
 
@@ -86,174 +87,115 @@ def generate_file_paths(origem: str, formato: str, BRONZE_PATH: str) -> tuple:
 
     return output_data_file, output_metadata_file, file_name, timestamp
 
-def get_access_token(client_id: str, authority: str, client_secret: str, scope: list) -> str:
+def ingest_csv(file_path: str) -> pd.DataFrame:
     """
-    Get SharePoint access token using MSAL authentication.
-    
-    Args:
-        client_id (str): Azure AD application client ID
-        authority (str): Azure AD authority URL
-        client_secret (str): Azure AD application client secret
-        scope (list): List of required scopes
-        
+    Lê arquivo CSV e retorna DataFrame.
+    Reads CSV file and returns a DataFrame.
+
+    Args (PT-BR):
+        file_path (str): Caminho para o arquivo CSV
+
+    Args (EN):
+        file_path (str): Path to the CSV file
+
     Returns:
-        str: Access token if successful, None otherwise
-        
-    [PT-BR]
-    Obtém token de acesso do SharePoint usando autenticação MSAL.
-    
-    Args:
-        client_id (str): ID do cliente da aplicação Azure AD
-        authority (str): URL de autoridade do Azure AD
-        client_secret (str): Segredo do cliente da aplicação Azure AD
-        scope (list): Lista de escopos necessários
-        
-    Returns:
-        str: Token de acesso se bem sucedido, None caso contrário
+        pd.DataFrame: DataFrame carregado / loaded DataFrame
     """
     try:
-        logger.info("Iniciando autenticação MSAL / Starting MSAL authentication")
-        
-        app = ConfidentialClientApplication(
-            client_id, 
-            authority=authority, 
-            client_credential=client_secret
-        )
-        
-        token_response = app.acquire_token_for_client(scopes=scope)
-        
-        if 'access_token' in token_response:
-            logger.info("Token de acesso obtido com sucesso / Access token successfully obtained")
-            return token_response['access_token']
-        else:
-            error_desc = token_response.get('error_description', 'No error description')
-            logger.error(f"Falha ao obter token: {error_desc} / Failed to get token: {error_desc}")
-            return None
-            
+        df = pd.read_csv(file_path)
+        logger.info(f"Arquivo CSV carregado com {df.shape[0]} linhas e {df.shape[1]} colunas / CSV file loaded with {df.shape[0]} rows and {df.shape[1]} columns")
+        return df
     except Exception as e:
-        logger.error(f"Erro na autenticação MSAL: {str(e)} / MSAL authentication error: {str(e)}")
+        logger.error(f"Erro ao carregar CSV: {str(e)} / Error loading CSV: {str(e)}")
         return None
 
-def ingest(access_token: str, site_url: str, file_path: str) -> None:
+def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Main function to ingest CSV data from SharePoint and save data + metadata.
-    
-    Args:
-        access_token (str): SharePoint access token
-        site_url (str): SharePoint site URL
-        file_path (str): Path to the file in SharePoint
-        
-    [PT-BR]
-    Função principal para ingerir dados CSV do SharePoint e salvar dados + metadados.
-    
-    Args:
-        access_token (str): Token de acesso do SharePoint
-        site_url (str): URL do site SharePoint
-        file_path (str): Caminho do arquivo no SharePoint
-    """
-    origem = "sharepoint_csv"
-    formato = "pandas"
+    Valida o DataFrame usando contrato Pydantic.
+    Validate the DataFrame using a Pydantic contract.
 
+    Args (PT-BR):
+        df (pd.DataFrame): DataFrame a ser validado
+
+    Args (EN):
+        df (pd.DataFrame): DataFrame to validate
+
+    Returns:
+        pd.DataFrame: DataFrame validado
+    """
     try:
-        # Setup headers for Graph API
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Accept": "application/json"
-        }
+        if df is None:
+            raise ValueError("DataFrame vazio para validação / Empty DataFrame for validation")
 
-        # Get drive information
-        drive_resp = requests.get(
-            f"{site_url}/drive", 
-            headers=headers
-        )
-        drive_resp.raise_for_status()
-        drive_id = drive_resp.json().get('id')
+        validated_df = validate_with_pydantic_batch(df, ProductCSVContract)
+        return validated_df
 
-        if not drive_id:
-            logger.error("Drive ID não encontrado / Drive ID not found")
-            return
+    except Exception as e:
+        logger.error(f"Erro na validação dos dados: {str(e)} / Error validating data: {str(e)}")
+        return None
 
-        # Get file content
-        logger.info(f"Buscando arquivo: {file_path} / Fetching file: {file_path}")
-        file_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{file_path}:/content"
-        file_resp = requests.get(file_url, headers=headers)
-        file_resp.raise_for_status()
+def save_data_and_metadata(df: pd.DataFrame, origin: str, framework: str) -> bool:
+    """
+    Salva o DataFrame validado e gera metadados.
+    Save the validated DataFrame and generate metadata.
 
-        # Convert response content to DataFrame
-        content = StringIO(file_resp.content.decode('utf-8'))
-        df = pd.read_csv(content)
+    Args (PT-BR):
+        df (pd.DataFrame): DataFrame validado
+        origin (str): origem dos dados
+        framework (str): framework utilizado
 
-        logger.info(f"DataFrame carregado: {df.shape[0]} linhas, {df.shape[1]} colunas / "
-                   f"DataFrame loaded: {df.shape[0]} rows, {df.shape[1]} columns")
+    Args (EN):
+        df (pd.DataFrame): validated DataFrame
+        origin (str): data source origin
+        framework (str): framework used
 
-        # Create bronze directory if it doesn't exist
-        os.makedirs(BRONZE_PATH, exist_ok=True)
+    Returns:
+        bool: True se sucesso / True if successful
+    """
+    try:
+        if df is None:
+            logger.error("DataFrame vazio / Empty DataFrame")
+            return False
 
-        # Generate file paths
-        output_data_file, output_metadata_file, file_name, timestamp = generate_file_paths(origem, formato)
+        output_data_file, output_metadata_file, file_name, timestamp = generate_file_paths(origin, framework)
 
-        # Save data
         df.to_csv(output_data_file, index=False)
-        logger.info(f"Dados salvos em: {output_data_file} / Data saved to: {output_data_file}")
+        logger.info(f"Dados salvos: {output_data_file} / Data saved: {output_data_file}")
 
-        # Generate metadata
         metadata = {
-            "origem": origem,
-            "formato": formato,
+            "origin": origin,
+            "framework": framework,
             "timestamp": timestamp,
             "status": "success",
-            "site_url": site_url,
-            "sharepoint_path": file_path,
-            "output_file": output_data_file,
-            "linhas": df.shape[0],
-            "colunas": df.shape[1],
-            "colunas_tipos": df.dtypes.astype(str).to_dict()
+            "data_file": output_data_file,
+            "rows": df.shape[0],
+            "columns": df.shape[1],
+            "columns_types": df.dtypes.astype(str).to_dict()
         }
 
-        # Save metadata
         with open(output_metadata_file, "w", encoding="utf-8") as f:
             json.dump(metadata, f, ensure_ascii=False, indent=4)
 
-        logger.info(f"Metadados salvos em: {output_metadata_file} / "
-                   f"Metadata saved to: {output_metadata_file}")
+        logger.info(f"Metadados salvos: {output_metadata_file} / Metadata saved: {output_metadata_file}")
+        return True
 
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Erro na requisição SharePoint: {str(e)} / SharePoint request error: {str(e)}")
-    except pd.errors.EmptyDataError:
-        logger.error("Arquivo CSV vazio / Empty CSV file")
     except Exception as e:
-        logger.error(f"Erro inesperado: {str(e)} / Unexpected error: {str(e)}")
+        logger.error(f"Erro ao salvar dados/metadados: {str(e)} / Error saving data/metadata: {str(e)}")
+        return False
 
-# Update main execution
 if __name__ == "__main__":
-    load_dotenv()
-    BRONZE_PATH = "./data/bronze/"
-    
-    # Get configuration from environment variables
-    client_id = os.getenv("SHAREPOINT_CLIENT_ID")
-    tenant_id = os.getenv("SHAREPOINT_TENANT_ID")
-    client_secret = os.getenv("SHAREPOINT_CLIENT_SECRET")
-    site_url = os.getenv("SHAREPOINT_SITE_URL")
-    file_path = os.getenv("SHAREPOINT_FILE_PATH")
-    
-    if not all([client_id, tenant_id, client_secret, site_url, file_path]):
-        logger.error("Configurações do SharePoint ausentes no .env / Missing SharePoint settings in .env")
-        exit(1)
-    
+    # Exemplo de execução / Example of execution
     try:
-        # Get access token
-        authority = f"https://login.microsoftonline.com/{tenant_id}"
-        scope = ["https://graph.microsoft.com/.default"]
-        
-        access_token = get_access_token(
-            client_id=client_id,
-            authority=authority,
-            client_secret=client_secret,
-            scope=scope
-        )
-        
-        # Execute ingestion
-        ingest(access_token, site_url, file_path)
-        
+        file_path = os.getenv("CSV_FILE_PATH")  # Definir no .env ou setar diretamente
+        origin = "csv"
+        framework = "pandas"
+
+        df = ingest_csv(file_path)
+        if df is not None:
+            os.makedirs(BRONZE_PATH, exist_ok=True)
+            validated_df = validate_dataframe(df)
+            if validated_df is not None:
+                save_data_and_metadata(validated_df, origin, framework)
+
     except Exception as e:
-        logger.error(f"Erro na execução principal: {str(e)} / Main execution error: {str(e)}")
+        logger.error(f"Erro na execução principal: {str(e)} / Error in main execution: {str(e)}")
