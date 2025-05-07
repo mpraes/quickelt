@@ -1,4 +1,4 @@
-# 🚀 The Pipeline Craft  
+# 🚀 The QuickELT Project 
 **Template de Setup para Desenvolvedores de Engenharia de Dados**  
 **Setup Template for Data Engineering Developers**
 
@@ -6,7 +6,7 @@
 
 ## 🧭 Índice / Table of Contents
 
-- [🚀 The Pipeline Craft](#-the-pipeline-craft)
+- [🚀 The QuickELT Project](#-the-quickelt)
   - [🧭 Índice / Table of Contents](#-índice--table-of-contents)
   - [🎯 Sobre o Projeto  / About the Project](#-sobre-o-projeto---about-the-project)
   - [✨ Funcionalidades  /  Features](#-funcionalidades----features)
@@ -48,7 +48,7 @@ This project was created to help data engineers start their projects with speed,
 ## 📁 Estrutura do Projeto  / 📁 Project Structure
 
 ```bash
-PIPELINE_CRAFT/
+QUICKELT/
 ├── data/
 │   ├── bronze/              # Dados brutos / Raw data
 │   ├── silver/              # Dados tratados / Cleaned data
@@ -135,8 +135,8 @@ PIPELINE_CRAFT/
 ⚙️ Instalação / Installation
 1️⃣ Clone o repositório / Clone the repository
 ```bash
-git clone https://github.com/mpraes/pipeline_craft.git
-cd seu-repositorio
+git clone https://github.com/mpraes/quickelt.git
+cd quickelt
 ```	
 2️⃣ Crie e ative um ambiente virtual / Create and activate a virtual environment
 ```bash	
