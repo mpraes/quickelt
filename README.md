@@ -238,32 +238,52 @@ Sugestão de atualização para refletir melhor o que você já conquistou e o q
 
 ## 📈 Status Atual / Current Status
 
+### ✅ Concluído / Completed
 - [x] Templates de ingestão com Pandas e Polars
 - [x] Logger bilíngue para rastreamento dos processos
 - [x] Estrutura completa de testes unitários com Pytest
 - [x] Makefile configurado para rodar testes e scripts facilmente
 - [x] Templates de limpeza de dados (Pandas)
-- [x] Templates de limpeza de dados (Polars e DuckDB - versão inicial)
+- [x] Templates de limpeza de dados (Polars e DuckDB)
 - [x] Estrutura modularizada e profissional de ingestão
+- [x] Documentação bilingue (PT/EN) em todos os templates
+- [x] Suporte a múltiplas fontes de dados (APIs, bancos, arquivos)
+- [x] Tratamento de datas e fusos horários
+- [x] Padronização de valores monetários
+- [x] Deduplicação de dados
+- [x] Enriquecimento de dados via joins
+- [x] Validação de integridade referencial
+
+### 🚧 Em Desenvolvimento / In Development
 - [ ] Templates de transformação avançada (pós-pré-processamento para silver)
 - [ ] Adicionar integração contínua (CI/CD) com GitHub Actions
 - [ ] Criar imagens Docker para ambientes de execução padronizados
-- [x] Melhorar exemplos de `.env` para múltiplos bancos de dados
-- [ ] Expandir o suporte para autenticação OAuth2 em APIs
-- [x] Aplicação de Contratos de Dados com Pydantic
+- [ ] Implementar cache de dados para otimização de performance
+- [ ] Adicionar suporte a mais formatos de arquivo (Excel, JSON, XML)
+- [ ] Desenvolver dashboard de monitoramento de pipelines
+- [ ] Implementar sistema de versionamento de schemas
+- [ ] Adicionar suporte a processamento distribuído
 
-## 🛠️ Próximos Passos / Next Steps
+### 📝 Próximos Passos / Next Steps
+1. **Transformação Avançada**
+   - Desenvolver templates para transformações complexas
+   - Implementar validações de qualidade de dados
+   - Adicionar suporte a agregações e métricas
 
-- [ ] Finalizar e aprimorar os templates de limpeza de dados para Silver Layer
-- [ ] Criar templates de transformação avançada e derivação de métricas
-- [ ] Adicionar exemplos práticos para consumo via DuckDB e Parquet
-- [ ] Implementar GitHub Actions para rodar testes automaticamente em cada push
-- [ ] Criar imagens Docker padronizadas para ambientes de desenvolvimento/teste
-- [ ] Adicionar documentação de exemplos de pipelines completos (bronze → silver → gold)
-- [ ] Melhorar integração para ingestão de APIs autenticadas (OAuth2, Tokens)
-- [ ] Adicionar versionamento de metadados e histórico de ingestões
-- [ ] Melhorar suporte a falhas com tratamento mais robusto de erros
+2. **DevOps e Infraestrutura**
+   - Configurar CI/CD com GitHub Actions
+   - Criar Dockerfile e docker-compose
+   - Implementar monitoramento e alertas
 
+3. **Documentação e Testes**
+   - Expandir documentação com exemplos práticos
+   - Aumentar cobertura de testes
+   - Adicionar documentação de API
+
+4. **Performance e Escalabilidade**
+   - Implementar cache de dados
+   - Otimizar queries DuckDB
+   - Adicionar suporte a processamento distribuído
 
 Contribuições são bem-vindas!
 Contributions are welcome!
