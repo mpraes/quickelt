@@ -5,6 +5,7 @@ requests>=2.31.0
 sqlalchemy>=2.0.30
 python-dotenv>=1.0.1
 beautifulsoup4>=4.12.3
+duckdb>=0.9.1
 
 # Drivers de banco de dados (depende do banco que você quiser usar)
 psycopg2-binary>=2.9.9     # Para PostgreSQL
@@ -27,3 +28,6 @@ lxml>=4.9.3               # Para parsing HTML (usado com beautifulsoup4)
 # Formatos de arquivo
 pyarrow>=15.0.1           # Para arquivos Parquet
 fastparquet>=2024.2.0     # Alternativa para Parquet
+
+# Pacotes para API
+requests>=2.31.0
