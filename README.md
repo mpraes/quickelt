@@ -1,7 +1,8 @@
+![ChatGPT Image 23 de jun  de 2025, 08_22_36](https://github.com/user-attachments/assets/cd165cf4-f993-4507-8ab7-b507c6d3f02a)
+
 # 🚀 The QuickELT Project 
 **Template de Setup para Desenvolvedores de Engenharia de Dados**  
 **Setup Template for Data Engineering Developers**
-
 ---
 
 ## 🧭 Índice / Table of Contents
