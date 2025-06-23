@@ -3,11 +3,28 @@
 # 🚀 The QuickELT Project 
 **Template de Setup para Desenvolvedores de Engenharia de Dados**  
 **Setup Template for Data Engineering Developers**
+
+---
+
+## 🎯 Paradigma de Programação / Programming Paradigm
+
+Este projeto utiliza **Programação Funcional** como paradigma principal para todos os templates e utilitários. As funções são puras, imutáveis e focadas em transformação de dados, seguindo os princípios de composição e reutilização.
+
+This project uses **Functional Programming** as the main paradigm for all templates and utilities. Functions are pure, immutable, and focused on data transformation, following composition and reusability principles.
+
+**Características / Characteristics:**
+- ✅ Funções puras e previsíveis / Pure and predictable functions
+- ✅ Imutabilidade de dados / Data immutability
+- ✅ Composição de funções / Function composition
+- ✅ Processadores customizáveis / Customizable processors
+- ✅ Sem estado compartilhado / No shared state
+
 ---
 
 ## 🧭 Índice / Table of Contents
 
-- [🚀 The QuickELT Project](#-the-quickelt)
+- [🚀 The QuickELT Project](#-the-quickelt-project)
+  - [🎯 Paradigma de Programação / Programming Paradigm](#-paradigma-de-programação--programming-paradigm)
   - [🧭 Índice / Table of Contents](#-índice--table-of-contents)
   - [🎯 Sobre o Projeto  / About the Project](#-sobre-o-projeto---about-the-project)
   - [✨ Funcionalidades  /  Features](#-funcionalidades----features)
@@ -18,7 +35,17 @@
     - [Limpar arquivos temporários / Clean temporary files](#limpar-arquivos-temporários--clean-temporary-files)
 - [📋 Atualização para "📈 Status Atual / Current Status"](#-atualização-para--status-atual--current-status)
   - [📈 Status Atual / Current Status](#-status-atual--current-status)
-  - [🛠️ Próximos Passos / Next Steps](#️-próximos-passos--next-steps)
+    - [✅ Concluído / Completed](#-concluído--completed)
+    - [🚧 Em Desenvolvimento / In Development](#-em-desenvolvimento--in-development)
+    - [📝 Próximos Passos / Next Steps](#-próximos-passos--next-steps)
+  - [🔐 Configuração de Segurança / Security Configuration](#-configuração-de-segurança--security-configuration)
+    - [Variáveis de Ambiente Críticas / Critical Environment Variables](#variáveis-de-ambiente-críticas--critical-environment-variables)
+      - [📋 Configurações Obrigatórias / Required Configurations](#-configurações-obrigatórias--required-configurations)
+      - [🚀 Setup Rápido / Quick Setup](#-setup-rápido--quick-setup)
+      - [🔒 Boas Práticas de Segurança / Security Best Practices](#-boas-práticas-de-segurança--security-best-practices)
+  - [🔧 Exemplos de Uso / Usage Examples](#-exemplos-de-uso--usage-examples)
+    - [Pipeline S3 Funcional / Functional S3 Pipeline](#pipeline-s3-funcional--functional-s3-pipeline)
+    - [Processadores Customizáveis / Customizable Processors](#processadores-customizáveis--customizable-processors)
 
 ---
 
@@ -32,8 +59,8 @@ This project was created to help data engineers start their projects with speed,
 
 ## ✨ Funcionalidades  /  Features
 
-- Templates prontos para ingestão com **Pandas** e **Polars**  
-  Ready-to-use ingestion templates with **Pandas** and **Polars**
+- Templates prontos para ingestão com **Pandas** e **Polars** usando programação funcional
+  Ready-to-use ingestion templates with **Pandas** and **Polars** using functional programming
 
 - Geração automática de arquivos e metadados organizados por data  
   Automatic file and metadata generation organized by date
@@ -43,6 +70,12 @@ This project was created to help data engineers start their projects with speed,
 
 - Modular, escalável e fácil de adaptar a novos contextos  
   Modular, scalable, and easy to adapt for new contexts
+
+- **Utilitários AWS S3** com operações funcionais para pipelines em nuvem
+  **AWS S3 utilities** with functional operations for cloud pipelines
+
+- **Processadores customizáveis** para transformação de dados
+  **Customizable processors** for data transformation
 
 ---
 
@@ -61,6 +94,7 @@ QUICKELT/
 │   │   ├── csv_template.py
 │   │   ├── databases_template.py
 │   │   ├── sharepoint_xls_template.py
+│   │   ├── s3_template.py   # Template S3 funcional / Functional S3 template
 │   │   └── web_scraping_template.py
 │   │
 │   └── polars_templates/    # Templates com Polars / Templates using Polars
@@ -68,6 +102,7 @@ QUICKELT/
 │       ├── csv_template.py
 │       ├── databases_template.py
 │       ├── sharepoint_xls_template.py
+│       ├── s3_template.py   # Template S3 funcional / Functional S3 template
 │       └── web_scraping_template.py
 │
 ├── metadata/                # Metadados das ingestões / Ingestion metadata
@@ -86,7 +121,8 @@ QUICKELT/
 │       └── cleaning_template_polars.py   # Template de limpeza com Polars / Polars cleaning template
 │
 ├── utils/
-│   └── logger.py             # Logger bilíngue / Bilingual logger
+│   ├── logger.py             # Logger bilíngue / Bilingual logger
+│   └── s3_utils.py           # Utilitários AWS S3 / AWS S3 utilities
 │
 ├── .env                      # Variáveis de ambiente / Environment variables
 ├── CHECKLIST.md             # Checklist de boas práticas / Best Practices Checklist
@@ -113,6 +149,10 @@ QUICKELT/
 - **Integração Microsoft / Microsoft Integration**
   - msal>=1.26.0
   - openpyxl>=3.1.2
+
+- **AWS S3 Integration**
+  - boto3>=1.34.0
+  - botocore>=1.34.0
 
 - **Web Scraping & APIs**
   - requests>=2.31.0
@@ -150,10 +190,38 @@ source .venv/bin/activate      # Linux/macOS
 pip install -r requirements.txt
 ```	
 4️⃣ (OPCIONAL/OPTIONAL) Configure variáveis de ambiente criando o arquivo .env no diretório raiz. No arquivo .env do repositório tem os exemplos. Use o comando abaixo caso precise. / Configure environment variables by creating a .env file in the root directory. The .env file in the repository contains examples. Use the command below to create the file in case of need.
-```bash	
-touch .env
-```	
-5️⃣ (OPCIONAL/OPTIONAL) Execute os testes automáticos / Run automatic tests
+
+**Opção 1: Script Interativo (Recomendado) / Interactive Script (Recommended)**
+```bash
+python setup_env.py
+```
+
+**Opção 2: Copiar Arquivo de Exemplo / Copy Example File**
+```bash
+cp config.env.example .env
+```
+
+5️⃣ Configure as variáveis críticas no arquivo .env / Configure critical variables in the .env file:
+```bash
+# AWS S3 Configuration
+AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=your-bucket-name
+
+# Database Configuration (choose your database)
+POSTGRES_HOST=localhost
+POSTGRES_USERNAME=your_username
+POSTGRES_PASSWORD=your_password
+POSTGRES_DATABASE=quickelt_db
+
+# SharePoint Configuration (if using)
+AZURE_TENANT_ID=your_tenant_id
+AZURE_CLIENT_ID=your_client_id
+AZURE_CLIENT_SECRET=your_client_secret
+```
+
+6️⃣ (OPCIONAL/OPTIONAL) Execute os testes automáticos / Run automatic tests
 ```bash	
 pytest
 ```	
@@ -240,7 +308,7 @@ Sugestão de atualização para refletir melhor o que você já conquistou e o q
 ## 📈 Status Atual / Current Status
 
 ### ✅ Concluído / Completed
-- [x] Templates de ingestão com Pandas e Polars
+- [x] Templates de ingestão com Pandas e Polars (programação funcional)
 - [x] Logger bilíngue para rastreamento dos processos
 - [x] Estrutura completa de testes unitários com Pytest
 - [x] Makefile configurado para rodar testes e scripts facilmente
@@ -254,6 +322,8 @@ Sugestão de atualização para refletir melhor o que você já conquistou e o q
 - [x] Deduplicação de dados
 - [x] Enriquecimento de dados via joins
 - [x] Validação de integridade referencial
+- [x] Utilitários AWS S3 para operações em nuvem (programação funcional)
+- [x] Processadores customizáveis para transformação de dados
 
 ### 🚧 Em Desenvolvimento / In Development
 - [ ] Templates de transformação avançada (pós-pré-processamento para silver)
@@ -296,5 +366,103 @@ Distribuído sob a licença MIT.
 Distributed under the MIT license.
 Use livre para fins comerciais ou educacionais.
 Free to use for commercial or educational purposes.
+
+## 🔐 Configuração de Segurança / Security Configuration
+
+### Variáveis de Ambiente Críticas / Critical Environment Variables
+
+O projeto QuickELT utiliza variáveis de ambiente para todas as configurações sensíveis. **NUNCA** commite o arquivo `.env` real no controle de versão.
+
+The QuickELT project uses environment variables for all sensitive configurations. **NEVER** commit the actual `.env` file to version control.
+
+#### 📋 Configurações Obrigatórias / Required Configurations
+
+**AWS S3:**
+- `AWS_ACCESS_KEY_ID` - Chave de acesso AWS
+- `AWS_SECRET_ACCESS_KEY` - Chave secreta AWS
+- `AWS_REGION` - Região AWS (padrão: us-east-1)
+- `AWS_S3_BUCKET` - Nome do bucket S3
+
+**Banco de Dados / Database:**
+- `POSTGRES_HOST` / `MYSQL_HOST` / `ORACLE_HOST` - Host do banco
+- `POSTGRES_USERNAME` / `MYSQL_USERNAME` / `ORACLE_USERNAME` - Usuário
+- `POSTGRES_PASSWORD` / `MYSQL_PASSWORD` / `ORACLE_PASSWORD` - Senha
+- `POSTGRES_DATABASE` / `MYSQL_DATABASE` - Nome do banco
+
+**SharePoint:**
+- `AZURE_TENANT_ID` - ID do tenant Azure
+- `AZURE_CLIENT_ID` - ID do cliente Azure
+- `AZURE_CLIENT_SECRET` - Segredo do cliente Azure
+
+#### 🚀 Setup Rápido / Quick Setup
+
+```bash
+# 1. Usar script interativo (recomendado)
+python setup_env.py
+
+# 2. Ou copiar arquivo de exemplo
+cp config.env.example .env
+
+# 3. Editar configurações
+nano .env
+
+# 4. Verificar se .env está no .gitignore
+grep .env .gitignore
+```
+
+#### 🔒 Boas Práticas de Segurança / Security Best Practices
+
+1. **Use IAM Roles** em produção em vez de chaves de acesso
+2. **Rotacione credenciais** regularmente
+3. **Use serviços de gerenciamento de segredos** (AWS Secrets Manager, Azure Key Vault)
+4. **Configure diferentes .env** para diferentes ambientes
+5. **Monitore logs** de acesso e uso de credenciais
+
+## 🔧 Exemplos de Uso / Usage Examples
+
+### Pipeline S3 Funcional / Functional S3 Pipeline
+
+```python
+from ingestion.pandas_templates.s3_template import run_s3_ingestion_pipeline
+
+# Pipeline básico
+results = run_s3_ingestion_pipeline(
+    bucket='my-bucket',
+    source_prefix='data/bronze/',
+    destination_prefix='data/silver/',
+    suffix='.csv',
+    output_format='parquet'
+)
+
+# Pipeline com processador customizado
+def my_processor(df):
+    df['processed_at'] = datetime.now()
+    return df
+
+results = run_s3_ingestion_pipeline(
+    bucket='my-bucket',
+    custom_processor=my_processor
+)
+```
+
+### Processadores Customizáveis / Customizable Processors
+
+```python
+# Exemplo de processador para limpeza de dados
+def clean_data_processor(df):
+    # Remove linhas com todos os valores nulos
+    df = df.dropna(how='all')
+    
+    # Preenche valores numéricos com 0
+    numeric_cols = df.select_dtypes(include=['number']).columns
+    df[numeric_cols] = df[numeric_cols].fillna(0)
+    
+    return df
+
+# Aplicar processador no pipeline
+results = run_s3_ingestion_pipeline(
+    custom_processor=clean_data_processor
+)
+```
 
 

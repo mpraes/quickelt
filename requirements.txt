@@ -17,6 +17,10 @@ pyodbc>=5.0.1              # Para MS SQL Server
 msal>=1.26.0               # Para autenticação Microsoft
 openpyxl>=3.1.2           # Para leitura de arquivos Excel
 
+# Pacotes para AWS S3
+boto3>=1.34.0              # SDK AWS para Python
+botocore>=1.34.0           # Core do SDK AWS
+
 # Pacotes para testes automáticos
 pytest>=8.2.2
 
