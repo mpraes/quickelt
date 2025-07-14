@@ -30,10 +30,20 @@ This project uses **Functional Programming** as the main paradigm for all templa
   - [✨ Funcionalidades  /  Features](#-funcionalidades----features)
   - [📁 Estrutura do Projeto  / 📁 Project Structure](#-estrutura-do-projeto----project-structure)
   - [📦 Dependências Principais / Main Dependencies](#-dependências-principais--main-dependencies)
+  - [⚙️ Instalação / Installation](#️-instalação--installation)
+    - [🐧 Instalação Automatizada para Linux Ubuntu](#-instalação-automatizada-para-linux-ubuntu)
+    - [🖥️ Instalação Manual (Todas as Plataformas)](#️-instalação-manual-todas-as-plataformas)
+  - [🐳 Infraestrutura com Docker](#-infraestrutura-com-docker)
+    - [🚀 Inicialização Rápida / Quick Start](#-inicialização-rápida--quick-start)
+    - [📋 Serviços Disponíveis / Available Services](#-serviços-disponíveis--available-services)
+    - [🔧 Configuração Automática / Automatic Configuration](#-configuração-automática--automatic-configuration)
+    - [🪣 Estrutura do Data Lake](#-estrutura-do-data-lake)
+    - [🛠️ Comandos Úteis / Useful Commands](#️-comandos-úteis--useful-commands)
+  - [⚙️ Executando Testes e Scripts / Running Tests and Scripts](#️-executando-testes-e-scripts--running-tests-and-scripts)
+    - [🔹 Rodar todos os testes / Run all tests](#-rodar-todos-os-testes--run-all-tests)
     - [🔹 Rodar testes específicos / Run specific tests](#-rodar-testes-específicos--run-specific-tests)
     - [Rodar scripts de ingestão diretamente / Run ingestion scripts directly](#rodar-scripts-de-ingestão-diretamente--run-ingestion-scripts-directly)
     - [Limpar arquivos temporários / Clean temporary files](#limpar-arquivos-temporários--clean-temporary-files)
-- [📋 Atualização para "📈 Status Atual / Current Status"](#-atualização-para--status-atual--current-status)
   - [📈 Status Atual / Current Status](#-status-atual--current-status)
     - [✅ Concluído / Completed](#-concluído--completed)
     - [🚧 Em Desenvolvimento / In Development](#-em-desenvolvimento--in-development)
@@ -46,6 +56,7 @@ This project uses **Functional Programming** as the main paradigm for all templa
   - [🔧 Exemplos de Uso / Usage Examples](#-exemplos-de-uso--usage-examples)
     - [Pipeline S3 Funcional / Functional S3 Pipeline](#pipeline-s3-funcional--functional-s3-pipeline)
     - [Processadores Customizáveis / Customizable Processors](#processadores-customizáveis--customizable-processors)
+    - [🆕 Exemplo com Infraestrutura Local / Local Infrastructure Example](#-exemplo-com-infraestrutura-local--local-infrastructure-example)
 
 ---
 
@@ -77,6 +88,12 @@ This project was created to help data engineers start their projects with speed,
 - **Processadores customizáveis** para transformação de dados
   **Customizable processors** for data transformation
 
+- **🆕 Infraestrutura Docker** completa com PostgreSQL e MinIO para desenvolvimento local
+  **🆕 Complete Docker infrastructure** with PostgreSQL and MinIO for local development
+
+- **🆕 Script de instalação automatizada** para ambientes Linux Ubuntu
+  **🆕 Automated installation script** for Linux Ubuntu environments
+
 ---
 
 ## 📁 Estrutura do Projeto  / 📁 Project Structure
@@ -87,6 +104,11 @@ QUICKELT/
 │   ├── bronze/              # Dados brutos / Raw data
 │   ├── silver/              # Dados tratados / Cleaned data
 │   └── gold/                # Dados prontos para consumo / Analytics-ready data
+│
+├── infrastructure/          # 🆕 Infraestrutura Docker / Docker Infrastructure
+│   ├── docker-compose.yml   # PostgreSQL + MinIO setup
+│   ├── setup-quickelt-infra.sh  # Script automatizado Ubuntu / Automated Ubuntu script
+│   └── init-scripts/        # Scripts de inicialização DB / DB initialization scripts
 │
 ├── ingestion/
 │   ├── pandas_templates/    # Templates com Pandas / Templates using Pandas
@@ -171,25 +193,81 @@ QUICKELT/
 - **Testes / Testing**
   - pytest>=8.2.2
 
+- **🆕 Infraestrutura / Infrastructure**
+  - Docker e Docker Compose
+  - PostgreSQL 15 (via Docker)
+  - MinIO (S3-compatible via Docker)
+
 ---
 
-⚙️ Instalação / Installation
-1️⃣ Clone o repositório / Clone the repository
+## ⚙️ Instalação / Installation
+
+### 🐧 Instalação Automatizada para Linux Ubuntu
+
+**Para ambientes Linux Ubuntu, use nosso script de instalação completa:**
+
+```bash
+# 1. Baixar o script de instalação
+wget https://raw.githubusercontent.com/mpraes/quickelt/main/infrastructure/setup-quickelt-infra.sh
+
+# 2. Dar permissão de execução
+chmod +x setup-quickelt-infra.sh
+
+# 3. Executar instalação completa
+./setup-quickelt-infra.sh
+```
+
+**O script automaticamente:**
+- ✅ Verifica e atualiza o sistema Ubuntu/Debian
+- ✅ Instala Docker e Docker Compose
+- ✅ Configura Python 3.8+ e ambiente virtual
+- ✅ Clona o projeto para `/opt/quickelt`
+- ✅ Instala todas as dependências Python
+- ✅ Configura infraestrutura Docker (PostgreSQL + MinIO)
+- ✅ Cria arquivo `.env` com configurações locais
+- ✅ Configura bucket MinIO com estrutura bronze/silver/gold
+- ✅ Executa testes automatizados
+- ✅ Cria script de inicialização `start-quickelt.sh`
+
+**Após instalação automatizada:**
+```bash
+# Reiniciar sessão para aplicar permissões Docker
+# Restart session to apply Docker permissions
+exit
+# (faça login novamente / log in again)
+
+# Iniciar ambiente QuickELT
+/opt/quickelt/start-quickelt.sh
+
+# Acessar interfaces web
+# PostgreSQL: localhost:5432 (user: quickelt_user, pass: quickelt_password)
+# MinIO Console: http://localhost:9001 (user: minioadmin, pass: minioadmin123)
+# MinIO API: http://localhost:9000
+```
+
+### 🖥️ Instalação Manual (Todas as Plataformas)
+
+**Para Windows, macOS ou instalação customizada:**
+
+1️⃣ **Clone o repositório / Clone the repository**
 ```bash
 git clone https://github.com/mpraes/quickelt.git
 cd quickelt
-```	
-2️⃣ Crie e ative um ambiente virtual / Create and activate a virtual environment
+```
+
+2️⃣ **Crie e ative um ambiente virtual / Create and activate a virtual environment**
 ```bash	
 python -m venv .venv
 source .venv/bin/activate      # Linux/macOS
 .venv\Scripts\activate         # Windows
-```	
-3️⃣ Instale as dependências / Install dependencies
+```
+
+3️⃣ **Instale as dependências / Install dependencies**
 ```bash	
 pip install -r requirements.txt
-```	
-4️⃣ (OPCIONAL/OPTIONAL) Configure variáveis de ambiente criando o arquivo .env no diretório raiz. No arquivo .env do repositório tem os exemplos. Use o comando abaixo caso precise. / Configure environment variables by creating a .env file in the root directory. The .env file in the repository contains examples. Use the command below to create the file in case of need.
+```
+
+4️⃣ **Configure variáveis de ambiente / Configure environment variables**
 
 **Opção 1: Script Interativo (Recomendado) / Interactive Script (Recommended)**
 ```bash
@@ -201,7 +279,7 @@ python setup_env.py
 cp config.env.example .env
 ```
 
-5️⃣ Configure as variáveis críticas no arquivo .env / Configure critical variables in the .env file:
+5️⃣ **Configure as variáveis críticas no arquivo .env / Configure critical variables in the .env file:**
 ```bash
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
@@ -221,11 +299,96 @@ AZURE_CLIENT_ID=your_client_id
 AZURE_CLIENT_SECRET=your_client_secret
 ```
 
-6️⃣ (OPCIONAL/OPTIONAL) Execute os testes automáticos / Run automatic tests
+6️⃣ **Execute os testes automáticos / Run automatic tests**
 ```bash	
 pytest
-```	
+```
+
 ---
+
+## 🐳 Infraestrutura com Docker
+
+O QuickELT agora inclui uma infraestrutura Docker completa para desenvolvimento local, permitindo que você trabalhe com PostgreSQL e MinIO (S3-compatible) sem precisar instalar ou configurar esses serviços manualmente.
+
+QuickELT now includes a complete Docker infrastructure for local development, allowing you to work with PostgreSQL and MinIO (S3-compatible) without needing to manually install or configure these services.
+
+### 🚀 Inicialização Rápida / Quick Start
+
+```bash
+# Navegar para o diretório de infraestrutura
+cd infrastructure
+
+# Iniciar todos os serviços
+docker-compose up -d
+
+# Verificar status dos containers
+docker-compose ps
+
+# Ver logs em tempo real
+docker-compose logs -f
+```
+
+### 📋 Serviços Disponíveis / Available Services
+
+| Serviço / Service | Porta / Port | Credenciais / Credentials | Uso / Usage |
+|------------------|--------------|---------------------------|-------------|
+| **PostgreSQL** | `5432` | user: `quickelt_user`<br>pass: `quickelt_password`<br>db: `quickelt_db` | Templates `database_template.py` |
+| **MinIO Console** | `9001` | user: `minioadmin`<br>pass: `minioadmin123` | Gerenciar buckets S3<br>Manage S3 buckets |
+| **MinIO API** | `9000` | Access Key: `minioadmin`<br>Secret: `minioadmin123` | Templates `s3_template.py` |
+
+### 🔧 Configuração Automática / Automatic Configuration
+
+O arquivo `.env` é automaticamente configurado para usar a infraestrutura local:
+
+The `.env` file is automatically configured to use the local infrastructure:
+
+```bash
+# Configuração para desenvolvimento local com Docker
+# Configuration for local development with Docker
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USERNAME=quickelt_user
+POSTGRES_PASSWORD=quickelt_password
+POSTGRES_DATABASE=quickelt_db
+
+AWS_ENDPOINT_URL=http://localhost:9000  # MinIO local
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin123
+AWS_S3_BUCKET=quickelt-data
+```
+
+### 🪣 Estrutura do Data Lake
+
+O bucket MinIO é automaticamente configurado com a estrutura de data lake:
+
+The MinIO bucket is automatically configured with the data lake structure:
+
+```
+quickelt-data/
+├── bronze/    # Dados brutos / Raw data
+├── silver/    # Dados tratados / Cleaned data
+└── gold/      # Dados prontos para análise / Analytics-ready data
+```
+
+### 🛠️ Comandos Úteis / Useful Commands
+
+```bash
+# Parar todos os serviços
+docker-compose down
+
+# Parar e remover volumes (RESET completo)
+docker-compose down -v
+
+# Reiniciar apenas um serviço
+docker-compose restart postgres
+docker-compose restart minio
+
+# Acessar PostgreSQL via linha de comando
+docker exec -it quickelt-postgres psql -U quickelt_user -d quickelt_db
+
+# Ver uso de recursos
+docker stats quickelt-postgres quickelt-minio
+```
 
 ---
 
@@ -295,16 +458,6 @@ make help
 
 ---
 
-Visite o [CHECKLIST.md](CHECKLIST.md) para mais informações sobre boas práticas e orientações.  
-Visit the [CHECKLIST.md](CHECKLIST.md) for more information on best practices and guidelines.
-
-
----
-
-# 📋 Atualização para "📈 Status Atual / Current Status"
-
-Sugestão de atualização para refletir melhor o que você já conquistou e o que pode fazer nos próximos passos:
-
 ## 📈 Status Atual / Current Status
 
 ### ✅ Concluído / Completed
@@ -324,37 +477,45 @@ Sugestão de atualização para refletir melhor o que você já conquistou e o q
 - [x] Validação de integridade referencial
 - [x] Utilitários AWS S3 para operações em nuvem (programação funcional)
 - [x] Processadores customizáveis para transformação de dados
+- [x] **🆕 Infraestrutura Docker completa (PostgreSQL + MinIO)**
+- [x] **🆕 Script de instalação automatizada para Ubuntu Linux**
+- [x] **🆕 Configuração automática de ambiente de desenvolvimento local**
+- [x] **🆕 Data lake estruturado com camadas bronze/silver/gold**
+- [x] **🆕 Script de inicialização rápida do ambiente**
 
 ### 🚧 Em Desenvolvimento / In Development
 - [ ] Templates de transformação avançada (pós-pré-processamento para silver)
 - [ ] Adicionar integração contínua (CI/CD) com GitHub Actions
-- [ ] Criar imagens Docker para ambientes de execução padronizados
 - [ ] Implementar cache de dados para otimização de performance
 - [ ] Adicionar suporte a mais formatos de arquivo (Excel, JSON, XML)
 - [ ] Desenvolver dashboard de monitoramento de pipelines
 - [ ] Implementar sistema de versionamento de schemas
 - [ ] Adicionar suporte a processamento distribuído
+- [ ] **🆕 Script de instalação para Windows e macOS**
+- [ ] **🆕 Interface web para gerenciamento de pipelines**
+- [ ] **🆕 Monitoramento automático de health checks dos serviços**
 
 ### 📝 Próximos Passos / Next Steps
-1. **Transformação Avançada**
+1. **Infraestrutura e DevOps**
+   - Script de instalação para Windows/macOS
+   - Configurar CI/CD com GitHub Actions
+   - Interface web para monitoramento
+   - Health checks automáticos
+
+2. **Transformação Avançada**
    - Desenvolver templates para transformações complexas
    - Implementar validações de qualidade de dados
    - Adicionar suporte a agregações e métricas
 
-2. **DevOps e Infraestrutura**
-   - Configurar CI/CD com GitHub Actions
-   - Criar Dockerfile e docker-compose
-   - Implementar monitoramento e alertas
-
-3. **Documentação e Testes**
-   - Expandir documentação com exemplos práticos
-   - Aumentar cobertura de testes
-   - Adicionar documentação de API
-
-4. **Performance e Escalabilidade**
+3. **Performance e Escalabilidade**
    - Implementar cache de dados
    - Otimizar queries DuckDB
    - Adicionar suporte a processamento distribuído
+
+4. **Documentação e Testes**
+   - Expandir documentação com exemplos práticos
+   - Aumentar cobertura de testes
+   - Adicionar documentação de API
 
 Contribuições são bem-vindas!
 Contributions are welcome!
@@ -362,10 +523,7 @@ Contributions are welcome!
 Solicite adição de contribuidor, e com isso crie uma branch e abra um pull request com sugestões, melhorias ou novos templates. Pode também abrir issues ou até entrar em contato comigo com sugestões.
 Feel free to request contributor access, create a branch, and open a pull request with suggestions, improvements, or new templates. You can also open issues or contact me directly with suggestions.
 
-Distribuído sob a licença MIT.
-Distributed under the MIT license.
-Use livre para fins comerciais ou educacionais.
-Free to use for commercial or educational purposes.
+---
 
 ## 🔐 Configuração de Segurança / Security Configuration
 
@@ -377,13 +535,29 @@ The QuickELT project uses environment variables for all sensitive configurations
 
 #### 📋 Configurações Obrigatórias / Required Configurations
 
-**AWS S3:**
+**🆕 Desenvolvimento Local (Docker):**
+```bash
+# Configuração automática via script de instalação
+# Automatic configuration via installation script
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USERNAME=quickelt_user
+POSTGRES_PASSWORD=quickelt_password
+POSTGRES_DATABASE=quickelt_db
+
+AWS_ENDPOINT_URL=http://localhost:9000  # MinIO local
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin123
+AWS_S3_BUCKET=quickelt-data
+```
+
+**AWS S3 (Produção):**
 - `AWS_ACCESS_KEY_ID` - Chave de acesso AWS
 - `AWS_SECRET_ACCESS_KEY` - Chave secreta AWS
 - `AWS_REGION` - Região AWS (padrão: us-east-1)
 - `AWS_S3_BUCKET` - Nome do bucket S3
 
-**Banco de Dados / Database:**
+**Banco de Dados Externo / External Database:**
 - `POSTGRES_HOST` / `MYSQL_HOST` / `ORACLE_HOST` - Host do banco
 - `POSTGRES_USERNAME` / `MYSQL_USERNAME` / `ORACLE_USERNAME` - Usuário
 - `POSTGRES_PASSWORD` / `MYSQL_PASSWORD` / `ORACLE_PASSWORD` - Senha
@@ -397,16 +571,19 @@ The QuickELT project uses environment variables for all sensitive configurations
 #### 🚀 Setup Rápido / Quick Setup
 
 ```bash
-# 1. Usar script interativo (recomendado)
+# 1. Usar script automatizado Ubuntu (RECOMENDADO)
+./infrastructure/setup-quickelt-infra.sh
+
+# 2. Ou usar script interativo manual
 python setup_env.py
 
-# 2. Ou copiar arquivo de exemplo
+# 3. Ou copiar arquivo de exemplo
 cp config.env.example .env
 
-# 3. Editar configurações
+# 4. Editar configurações
 nano .env
 
-# 4. Verificar se .env está no .gitignore
+# 5. Verificar se .env está no .gitignore
 grep .env .gitignore
 ```
 
@@ -417,6 +594,10 @@ grep .env .gitignore
 3. **Use serviços de gerenciamento de segredos** (AWS Secrets Manager, Azure Key Vault)
 4. **Configure diferentes .env** para diferentes ambientes
 5. **Monitore logs** de acesso e uso de credenciais
+6. **🆕 Use a infraestrutura Docker local** para desenvolvimento
+7. **🆕 Mantenha credenciais de produção separadas** das de desenvolvimento
+
+---
 
 ## 🔧 Exemplos de Uso / Usage Examples
 
@@ -425,9 +606,9 @@ grep .env .gitignore
 ```python
 from ingestion.pandas_templates.s3_template import run_s3_ingestion_pipeline
 
-# Pipeline básico
+# Pipeline básico com MinIO local
 results = run_s3_ingestion_pipeline(
-    bucket='my-bucket',
+    bucket='quickelt-data',  # Bucket configurado automaticamente
     source_prefix='data/bronze/',
     destination_prefix='data/silver/',
     suffix='.csv',
@@ -440,7 +621,7 @@ def my_processor(df):
     return df
 
 results = run_s3_ingestion_pipeline(
-    bucket='my-bucket',
+    bucket='quickelt-data',
     custom_processor=my_processor
 )
 ```
@@ -464,5 +645,47 @@ results = run_s3_ingestion_pipeline(
     custom_processor=clean_data_processor
 )
 ```
+
+### 🆕 Exemplo com Infraestrutura Local / Local Infrastructure Example
+
+```python
+# Usando PostgreSQL local via Docker
+from ingestion.pandas_templates.databases_template import run_postgres_ingestion
+
+# Configuração automática via .env
+results = run_postgres_ingestion(
+    query="SELECT * FROM sales_data WHERE created_at >= '2024-01-01'",
+    destination_prefix='bronze/sales/',
+    output_format='parquet'
+)
+
+# Pipeline completo: PostgreSQL -> MinIO
+from utils.s3_utils import upload_to_s3
+
+# 1. Extrair do PostgreSQL
+df = run_postgres_ingestion(query="SELECT * FROM users")
+
+# 2. Carregar para MinIO (data lake local)
+upload_to_s3(
+    df=df,
+    bucket='quickelt-data',
+    key='bronze/users/users_2024.parquet'
+)
+```
+
+---
+
+**Distribuído sob a licença MIT.**  
+**Distributed under the MIT license.**
+
+**Use livre para fins comerciais ou educacionais.**  
+**Free to use for commercial or educational purposes.**
+
+**🚀 Happy coding with QuickELT!**
+
+---
+
+Visite o [CHECKLIST.md](CHECKLIST.md) para mais informações sobre boas práticas e orientações.  
+Visit the [CHECKLIST.md](CHECKLIST.md) for more information on best practices and guidelines.
 
 
