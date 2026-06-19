@@ -17,6 +17,18 @@ from typing import Any
 
 from setup.cli_executor import CLIExecutor, ErrorCategory, Spinner
 from setup.env_writer import EnvWriter
+from setup._style import (
+    ACCENT,
+    BRAND,
+    BOLD,
+    INDENT,
+    MUTED,
+    PANEL_WIDTH,
+    accent,
+    brand,
+    panel,
+    s,
+)
 
 
 class Provisioner(abc.ABC):
@@ -154,11 +166,8 @@ echo "[quickelt-bootstrap] Bootstrap complete."
 
     def _print_provision_banner(self) -> None:
         label = f"{self.CLOUD_NAME} Provisioner"
-        padding = 42 - 7 - len(label)
         print()
-        print("  ╔══════════════════════════════════════════╗")
-        print(f"  ║       {label}{' ' * padding}║")
-        print("  ╚══════════════════════════════════════════╝")
+        print(panel(label, border_color=ACCENT, title_color=BRAND))
         print()
         self.log.debug("%s provisioner started", self.CLOUD_NAME)
 

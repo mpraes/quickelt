@@ -29,6 +29,9 @@ dependencies = [
     "questionary>=2.0.0",
 ]
 
+[project.scripts]
+quickelt = "src.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.2.2",
@@ -37,3 +40,10 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

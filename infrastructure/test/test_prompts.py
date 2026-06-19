@@ -91,6 +91,31 @@ class TestApplyLocalVmStrategy:
         assert dw["install_local_postgres"] is False
 
 
+class TestBuiltinBackendAskSetupName:
+    @patch("builtins.input", return_value="Acme Prod")
+    def test_normalizes_name(self, mock_input, tmp_path, monkeypatch):
+        monkeypatch.setattr("setup.setup_registry.SETUPS_ROOT", tmp_path / "setups")
+        backend = BuiltinBackend(logger=_TEST_LOGGER)
+        assert backend.ask_setup_name() == "acme-prod"
+
+    @patch("builtins.input", side_effect=["", "acme-prod"])
+    def test_rejects_empty_then_accepts(self, mock_input, tmp_path, monkeypatch):
+        monkeypatch.setattr("setup.setup_registry.SETUPS_ROOT", tmp_path / "setups")
+        backend = BuiltinBackend(logger=_TEST_LOGGER)
+        assert backend.ask_setup_name() == "acme-prod"
+
+    @patch("builtins.input", side_effect=["acme-prod", "acme-dev"])
+    def test_rejects_existing_setup(self, mock_input, tmp_path, monkeypatch):
+        setups_root = tmp_path / "setups"
+        monkeypatch.setattr("setup.setup_registry.SETUPS_ROOT", setups_root)
+        existing = setups_root / "acme-prod"
+        existing.mkdir(parents=True)
+        (existing / ".env").write_text("SETUP_NAME=acme-prod\n", encoding="utf-8")
+
+        backend = BuiltinBackend(logger=_TEST_LOGGER)
+        assert backend.ask_setup_name() == "acme-dev"
+
+
 class TestBuiltinBackendAskCloud:
     @patch("builtins.input", return_value="1")
     def test_select_aws(self, mock_input):
@@ -172,18 +197,34 @@ class TestBuiltinBackendAskCompute:
         assert result["compute"] == "Serverless/PaaS"
 
 
+class TestBuiltinBackendAskGoldDatabase:
+    @patch("builtins.input", return_value="2")
+    def test_no_external_db(self, mock_input):
+        backend = BuiltinBackend(logger=_TEST_LOGGER)
+        result = backend.ask_gold_database()
+        assert result["gold_external_db"] is False
+
+    @patch("builtins.input", return_value="1")
+    def test_yes_external_db(self, mock_input):
+        backend = BuiltinBackend(logger=_TEST_LOGGER)
+        result = backend.ask_gold_database()
+        assert result["gold_external_db"] is True
+
+
 class TestBuiltinBackendAskDw:
     @patch("builtins.input", return_value="2")
     def test_no_external_db(self, mock_input):
         backend = BuiltinBackend(logger=_TEST_LOGGER)
-        result = backend.ask_dw({"compute": "Local Machine"})
+        dw = backend.ask_gold_database()
+        result = backend.ask_dw({"compute": "Local Machine"}, dw)
 
         assert result["gold_external_db"] is False
 
     @patch("builtins.input", side_effect=["1", "1"])
     def test_local_vm_strategy(self, mock_input):
         backend = BuiltinBackend(logger=_TEST_LOGGER)
-        result = backend.ask_dw({"compute": "Dedicated VM"})
+        dw = backend.ask_gold_database()
+        result = backend.ask_dw({"compute": "Dedicated VM"}, dw)
 
         assert result["gold_external_db"] is True
         assert result["pg_strategy"] == "local_vm"
@@ -193,7 +234,8 @@ class TestBuiltinBackendAskDw:
     @patch("builtins.input", side_effect=["1", "2", "1"])
     def test_managed_cloud_provision_new(self, mock_input):
         backend = BuiltinBackend(logger=_TEST_LOGGER)
-        result = backend.ask_dw({"compute": "Dedicated VM"})
+        dw = backend.ask_gold_database()
+        result = backend.ask_dw({"compute": "Dedicated VM"}, dw)
 
         assert result["gold_external_db"] is True
         assert result["pg_strategy"] == "managed_cloud"
@@ -205,7 +247,8 @@ class TestBuiltinBackendAskDw:
     @patch("setup.prompts.getpass.getpass", return_value="s3cret")
     def test_managed_cloud_connect_existing(self, mock_getpass, mock_input):
         backend = BuiltinBackend(logger=_TEST_LOGGER)
-        result = backend.ask_dw({"compute": "Local Machine"})
+        dw = backend.ask_gold_database()
+        result = backend.ask_dw({"compute": "Local Machine"}, dw)
 
         assert result["gold_external_db"] is True
         assert result["pg_strategy"] == "managed_cloud"
@@ -244,6 +287,7 @@ class TestInquirerBackendStructure:
         backend = InquirerBackend(logger=_TEST_LOGGER)
         assert hasattr(backend, "ask_cloud")
         assert hasattr(backend, "ask_storage")
+        assert hasattr(backend, "ask_gold_database")
         assert hasattr(backend, "ask_compute")
         assert hasattr(backend, "ask_dw")
 
@@ -316,10 +360,8 @@ class TestInquirerBackendStructure:
             pytest.skip("inquirer not installed")
 
         backend = InquirerBackend(logger=_TEST_LOGGER)
-        with patch.object(inquirer_mod, "prompt", side_effect=[
-            {"gold_external": "No"},
-        ]):
-            result = backend.ask_dw({"compute": "Local Machine"})
+        dw = PromptBackend._empty_dw()
+        result = backend.ask_dw({"compute": "Local Machine"}, dw)
         assert result["gold_external_db"] is False
 
 
@@ -328,6 +370,7 @@ class TestQuestionaryBackendStructure:
         backend = QuestionaryBackend(logger=_TEST_LOGGER)
         assert hasattr(backend, "ask_cloud")
         assert hasattr(backend, "ask_storage")
+        assert hasattr(backend, "ask_gold_database")
         assert hasattr(backend, "ask_compute")
         assert hasattr(backend, "ask_dw")
 

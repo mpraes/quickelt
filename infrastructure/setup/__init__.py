@@ -5,6 +5,19 @@ from setup.prompts import BuiltinBackend, InquirerBackend, PromptBackend, Questi
 from setup.provisioner import Provisioner
 from setup.aws_provisioner import AWSProvisioner
 from setup.azure_provisioner import AzureProvisioner
+from setup.azure_terraform_provisioner import AzureTerraformProvisioner
+from setup.constants import (
+    DEFAULT_AZURE_LOCATION,
+    DEFAULT_AZURE_RESOURCE_GROUP,
+    DEFAULT_AZURE_STORAGE_REPLICATION,
+    DEFAULT_CONTAINER_NAME,
+    DEFAULT_POSTGRES_BACKUP_DAYS,
+    DEFAULT_POSTGRES_SKU,
+    DEFAULT_VM_NAME,
+    DEFAULT_VM_SIZE,
+)
+from setup.terraform_executor import TerraformExecutor
+from setup.terraform_installer import ensure_terraform
 
 __all__ = [
     "CLIExecutor",
@@ -19,5 +32,16 @@ __all__ = [
     "Provisioner",
     "AWSProvisioner",
     "AzureProvisioner",
+    "AzureTerraformProvisioner",
+    "DEFAULT_AZURE_LOCATION",
+    "DEFAULT_AZURE_RESOURCE_GROUP",
+    "DEFAULT_AZURE_STORAGE_REPLICATION",
+    "DEFAULT_CONTAINER_NAME",
+    "DEFAULT_POSTGRES_BACKUP_DAYS",
+    "DEFAULT_POSTGRES_SKU",
+    "DEFAULT_VM_NAME",
+    "DEFAULT_VM_SIZE",
+    "TerraformExecutor",
+    "ensure_terraform",
     "Spinner",
 ]

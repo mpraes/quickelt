@@ -257,6 +257,62 @@ class TestPromptInputBuiltin:
         assert result is None
 
 
+class TestPromptBackendsDynamicImports:
+    def test_prompt_choice_inquirer_backend(self):
+        executor = CLIExecutor(logger=_TEST_LOGGER)
+        executor._backend = "inquirer"
+
+        mock_inquirer = MagicMock()
+        mock_inquirer.prompt.return_value = {"choice": "B"}
+        mock_inquirer.List.return_value = MagicMock()
+
+        with patch("setup.cli_executor._inquirer_module", return_value=mock_inquirer):
+            result = executor.prompt_choice("Pick", ["A", "B"])
+
+        assert result == "B"
+
+    def test_prompt_input_inquirer_backend(self):
+        executor = CLIExecutor(logger=_TEST_LOGGER)
+        executor._backend = "inquirer"
+
+        mock_inquirer = MagicMock()
+        mock_inquirer.prompt.return_value = {"value": "hello"}
+        mock_inquirer.Text.return_value = MagicMock()
+
+        with patch("setup.cli_executor._inquirer_module", return_value=mock_inquirer):
+            result = executor.prompt_input("Type", default="x")
+
+        assert result == "hello"
+
+    def test_prompt_choice_questionary_backend(self):
+        executor = CLIExecutor(logger=_TEST_LOGGER)
+        executor._backend = "questionary"
+
+        mock_questionary = MagicMock()
+        mock_select = MagicMock()
+        mock_select.ask.return_value = "A"
+        mock_questionary.select.return_value = mock_select
+
+        with patch("setup.cli_executor._questionary_module", return_value=mock_questionary):
+            result = executor.prompt_choice("Pick", ["A", "B"])
+
+        assert result == "A"
+
+    def test_prompt_input_questionary_backend(self):
+        executor = CLIExecutor(logger=_TEST_LOGGER)
+        executor._backend = "questionary"
+
+        mock_questionary = MagicMock()
+        mock_text = MagicMock()
+        mock_text.ask.return_value = "typed"
+        mock_questionary.text.return_value = mock_text
+
+        with patch("setup.cli_executor._questionary_module", return_value=mock_questionary):
+            result = executor.prompt_input("Type", default="x")
+
+        assert result == "typed"
+
+
 class TestSpinner:
     def test_spinner_start_stop(self):
         spinner = Spinner("test message", delay=0.01)

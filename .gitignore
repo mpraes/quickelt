@@ -58,6 +58,7 @@ Thumbs.db
 
 # Logs
 logs/
+infrastructure/setup/infra_logs/
 *.log
 *.log.*
 
@@ -137,3 +138,5 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+infrastructure/setups/*

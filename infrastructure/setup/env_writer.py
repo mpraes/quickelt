@@ -11,16 +11,34 @@ import logging
 import os
 from pathlib import Path
 
+from setup.constants import (
+    DEFAULT_AZURE_LOCATION,
+    DEFAULT_AZURE_RESOURCE_GROUP,
+    DEFAULT_AZURE_STORAGE_REPLICATION,
+    DEFAULT_POSTGRES_BACKUP_DAYS,
+    DEFAULT_POSTGRES_SKU,
+)
+
 
 class EnvWriter:
-    _DEFAULT_AZURE_RESOURCE_GROUP = "quickelt-rg"
-    _DEFAULT_AZURE_LOCATION = "eastus"
+    _DEFAULT_AZURE_RESOURCE_GROUP = DEFAULT_AZURE_RESOURCE_GROUP
+    _DEFAULT_AZURE_LOCATION = DEFAULT_AZURE_LOCATION
 
     def __init__(self, env_path: Path, logger: logging.Logger | None = None):
         self.env_path = env_path
         self.log = logger or logging.getLogger("quickelt.env")
 
-    def write(self, cloud: str, storage: dict, compute: dict, dw: dict) -> None:
+    def write(
+        self,
+        cloud: str,
+        storage: dict,
+        compute: dict,
+        dw: dict,
+        *,
+        setup_name: str | None = None,
+        setup_dir: str | None = None,
+        azure: dict | None = None,
+    ) -> None:
         existing_lines: list[str] = []
         try:
             with open(self.env_path) as f:
@@ -32,12 +50,39 @@ class EnvWriter:
             "CLOUD_PROVIDER": cloud,
         }
 
+        if setup_name:
+            wizard_keys["SETUP_NAME"] = setup_name
+            wizard_keys["QUICKELT_SETUP_NAME"] = setup_name
+        if setup_dir:
+            wizard_keys["QUICKELT_SETUP_DIR"] = setup_dir
+
         if cloud == "AWS":
             wizard_keys["AWS_S3_BUCKET"] = storage["name"]
         else:
+            azure = azure or {}
             wizard_keys["AZURE_STORAGE_ACCOUNT"] = storage["name"]
-            wizard_keys["AZURE_RESOURCE_GROUP"] = self._DEFAULT_AZURE_RESOURCE_GROUP
-            wizard_keys["AZURE_LOCATION"] = self._DEFAULT_AZURE_LOCATION
+            wizard_keys["AZURE_RESOURCE_GROUP"] = (
+                str(azure.get("resource_group", "")).strip() or self._DEFAULT_AZURE_RESOURCE_GROUP
+            )
+            wizard_keys["AZURE_LOCATION"] = (
+                str(azure.get("location", "")).strip() or self._DEFAULT_AZURE_LOCATION
+            )
+            subscription_id = str(azure.get("subscription_id", "")).strip()
+            if subscription_id:
+                wizard_keys["AZURE_SUBSCRIPTION_ID"] = subscription_id
+            tags = azure.get("tags", {})
+            if isinstance(tags, dict) and tags:
+                wizard_keys["AZURE_TAGS"] = ",".join(f"{k}={v}" for k, v in tags.items())
+            wizard_keys["AZURE_STORAGE_REPLICATION"] = str(
+                storage.get("replication", DEFAULT_AZURE_STORAGE_REPLICATION)
+            )
+            wizard_keys["AZURE_STORAGE_SOFT_DELETE_DAYS"] = str(storage.get("soft_delete_days", 7))
+            wizard_keys["AZURE_STORAGE_VERSIONING_ENABLED"] = str(
+                bool(storage.get("versioning_enabled", True))
+            ).lower()
+            wizard_keys["AZURE_DESTROY_PROTECTION"] = str(
+                bool(storage.get("destroy_protection", False))
+            ).lower()
 
         if storage["layers"]:
             wizard_keys["STORAGE_LAYERS"] = ",".join(storage["layers"])
@@ -55,6 +100,17 @@ class EnvWriter:
             wizard_keys["DW_USERNAME"] = dw.get("dw_username", "quickelt")
             wizard_keys["DW_PASSWORD"] = dw.get("dw_password", "")
             wizard_keys["PG_STRATEGY"] = dw.get("pg_strategy", "")
+            wizard_keys["AZURE_POSTGRES_SKU_NAME"] = dw.get("postgres_sku_name", DEFAULT_POSTGRES_SKU)
+            wizard_keys["AZURE_POSTGRES_BACKUP_RETENTION_DAYS"] = str(
+                dw.get("postgres_backup_retention_days", DEFAULT_POSTGRES_BACKUP_DAYS)
+            )
+            wizard_keys["AZURE_POSTGRES_PUBLIC_ACCESS"] = str(
+                bool(dw.get("postgres_public_network_access_enabled", True))
+            ).lower()
+            wizard_keys["AZURE_POSTGRES_ALLOWED_CIDR"] = dw.get("postgres_allowed_cidr", "")
+            wizard_keys["AZURE_POSTGRES_HA_ENABLED"] = str(
+                bool(dw.get("postgres_high_availability_enabled", False))
+            ).lower()
             if dw.get("managed_cloud_choice"):
                 wizard_keys["MANAGED_CLOUD_CHOICE"] = dw["managed_cloud_choice"]
 
@@ -133,6 +189,83 @@ class EnvWriter:
         except OSError:
             pass
         return None
+
+    def load_setup_config(self) -> tuple[str, dict, dict, dict]:
+        """Reconstruct wizard configuration dicts from the .env file."""
+        cloud = self.read_value("CLOUD_PROVIDER") or ""
+
+        if cloud == "AWS":
+            storage_name = self.read_value("AWS_S3_BUCKET") or ""
+        else:
+            storage_name = self.read_value("AZURE_STORAGE_ACCOUNT") or ""
+
+        layers_raw = self.read_value("STORAGE_LAYERS") or ""
+        layers = [layer.strip() for layer in layers_raw.split(",") if layer.strip()]
+        storage = {
+            "existing": False,
+            "name": storage_name,
+            "layers": layers,
+            "replication": self.read_value("AZURE_STORAGE_REPLICATION") or DEFAULT_AZURE_STORAGE_REPLICATION,
+            "soft_delete_days": int(self.read_value("AZURE_STORAGE_SOFT_DELETE_DAYS") or "7"),
+            "versioning_enabled": (
+                self.read_value("AZURE_STORAGE_VERSIONING_ENABLED") or "true"
+            ).lower() == "true",
+            "tags": self._parse_tags(self.read_value("AZURE_TAGS") or ""),
+            "destroy_protection": (
+                self.read_value("AZURE_DESTROY_PROTECTION") or "false"
+            ).lower() == "true",
+        }
+
+        compute = {
+            "compute": self.read_value("COMPUTE_TYPE") or "Local Machine",
+            "bootstrap_vm": (self.read_value("BOOTSTRAP_VM") or "false").lower() == "true",
+        }
+
+        pg_strategy = self.read_value("PG_STRATEGY")
+        managed_cloud_choice = self.read_value("MANAGED_CLOUD_CHOICE")
+        dw_host = self.read_value("DW_HOST")
+        gold_external_db = bool(pg_strategy or managed_cloud_choice or dw_host)
+
+        dw: dict = {
+            "gold_external_db": gold_external_db,
+            "pg_strategy": pg_strategy or None,
+            "install_local_postgres": (self.read_value("INSTALL_LOCAL_POSTGRES") or "false").lower() == "true",
+            "managed_cloud_choice": managed_cloud_choice or None,
+            "dw_host": dw_host,
+            "dw_port": self.read_value("DW_PORT") or "5432",
+            "dw_database": self.read_value("DW_DATABASE") or "quickelt_db",
+            "dw_username": self.read_value("DW_USERNAME") or "quickelt",
+            "dw_password": self.read_value("DW_PASSWORD"),
+            "postgres_sku_name": self.read_value("AZURE_POSTGRES_SKU_NAME") or DEFAULT_POSTGRES_SKU,
+            "postgres_backup_retention_days": int(
+                self.read_value("AZURE_POSTGRES_BACKUP_RETENTION_DAYS") or str(DEFAULT_POSTGRES_BACKUP_DAYS)
+            ),
+            "postgres_public_network_access_enabled": (
+                self.read_value("AZURE_POSTGRES_PUBLIC_ACCESS") or "true"
+            ).lower()
+            == "true",
+            "postgres_allowed_cidr": self.read_value("AZURE_POSTGRES_ALLOWED_CIDR") or "",
+            "postgres_high_availability_enabled": (
+                self.read_value("AZURE_POSTGRES_HA_ENABLED") or "false"
+            ).lower()
+            == "true",
+        }
+
+        return cloud, storage, compute, dw
+
+    @staticmethod
+    def _parse_tags(raw: str) -> dict[str, str]:
+        tags: dict[str, str] = {}
+        for pair in raw.split(","):
+            item = pair.strip()
+            if not item or "=" not in item:
+                continue
+            key, value = item.split("=", 1)
+            k = key.strip()
+            v = value.strip()
+            if k and v:
+                tags[k] = v
+        return tags
 
     def _restrict_permissions(self) -> None:
         try:

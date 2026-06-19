@@ -12,9 +12,17 @@ import base64
 import json
 import logging
 import os
+import re
 from typing import Any
 
 from setup.cli_executor import CLIExecutor, ErrorCategory, Spinner
+from setup.constants import (
+    DEFAULT_AZURE_LOCATION,
+    DEFAULT_AZURE_RESOURCE_GROUP,
+    DEFAULT_CONTAINER_NAME,
+    DEFAULT_VM_NAME,
+    DEFAULT_VM_SIZE,
+)
 from setup.env_writer import EnvWriter
 from setup.provisioner import Provisioner
 
@@ -22,15 +30,38 @@ from setup.provisioner import Provisioner
 class AzureProvisioner(Provisioner):
     CLOUD_NAME = "Azure"
     _DEFAULT_VM_IMAGE = "Ubuntu2204"
-    _DEFAULT_VM_SIZE = "Standard_D2s_v3"
-    _DEFAULT_VM_NAME = "quickelt-vm"
-    _DEFAULT_CONTAINER_NAME = "quickelt-data"
+    _DEFAULT_VM_SIZE = DEFAULT_VM_SIZE
+    _DEFAULT_VM_NAME = DEFAULT_VM_NAME
+    _DEFAULT_CONTAINER_NAME = DEFAULT_CONTAINER_NAME
+    _SUBSCRIPTION_ID_RE = re.compile(
+        r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    )
+
+    def _ensure_subscription(self, subscription_id: str) -> dict[str, Any]:
+        spinner = Spinner(f"Setting Azure subscription '{subscription_id}'...", logger=self.log).start()
+        result = self.cli.execute(
+            ["az", "account", "set", "--subscription", subscription_id],
+            timeout=20,
+        )
+        if result["ok"]:
+            spinner.succeed(f"Azure subscription set to '{subscription_id}'")
+            return {"ok": True, "message": "set", "subscription_id": subscription_id}
+
+        return self._handle_cli_error(
+            result.get("error_category"),
+            spinner,
+            result,
+            {"subscription_id": subscription_id},
+            fail_label="Setting Azure subscription",
+            unauthorized_log="Your Azure account lacks permission to use the selected subscription.",
+            auth_expired_log="Your Azure authentication token has expired. Run 'az login' to re-authenticate.",
+        )
 
     def _get_subscription_location(self) -> str:
         return self._detect_region(
             ["az", "account", "show", "--output", "json"],
             "AZURE_LOCATION",
-            "eastus",
+            DEFAULT_AZURE_LOCATION,
             json_key="location",
         )
 
@@ -89,7 +120,7 @@ class AzureProvisioner(Provisioner):
         resource_group: str | None = None,
     ) -> dict[str, Any]:
         if resource_group is None:
-            resource_group = "quickelt-rg"
+            resource_group = DEFAULT_AZURE_RESOURCE_GROUP
 
         location = self._get_subscription_location()
 
@@ -527,9 +558,26 @@ class AzureProvisioner(Provisioner):
 
         results: dict[str, Any] = {}
 
-        resource_group = self.env.read_value("AZURE_RESOURCE_GROUP") or "quickelt-rg"
+        subscription_id = (self.env.read_value("AZURE_SUBSCRIPTION_ID") or "").strip()
+        if subscription_id and self._SUBSCRIPTION_ID_RE.match(subscription_id):
+            sub_result = self._ensure_subscription(subscription_id)
+            if not sub_result.get("ok"):
+                detail = sub_result.get("message", "unknown error")
+                self.log.error("Azure subscription selection failed: %s", detail)
+                return {"ok": False, "message": "subscription_failed", "detail": detail}
+
+        resource_group = self.env.read_value("AZURE_RESOURCE_GROUP") or DEFAULT_AZURE_RESOURCE_GROUP
         account_name = storage["name"]
         self.log.debug("Resource group: %s, Storage account: %s", resource_group, account_name)
+        if storage["existing"]:
+            location = self._get_subscription_location()
+            rg_result = self._ensure_resource_group(resource_group, location)
+            if not rg_result["ok"]:
+                return {
+                    "ok": False,
+                    "message": rg_result["message"],
+                    "resource_group": resource_group,
+                }
 
         if not storage["existing"]:
             lake_result = self.create_azure_lake(account_name, resource_group)
@@ -548,7 +596,7 @@ class AzureProvisioner(Provisioner):
             results["lake"] = {
                 "ok": True, "message": "existing",
                 "account_name": account_name, "resource_group": resource_group,
-                "location": self._get_subscription_location(),
+                "location": location,
                 "primary_endpoint": endpoint, "account_key": key,
             }
 
@@ -597,6 +645,7 @@ class AzureProvisioner(Provisioner):
                     resource_group=resource_group,
                     admin_username=dw.get("dw_username", "quickelt"),
                     admin_password=dw.get("dw_password", ""),
+                    location=results.get("lake", {}).get("location") or self.env.read_value("AZURE_LOCATION"),
                 )
                 results["postgres"] = pg_result
 

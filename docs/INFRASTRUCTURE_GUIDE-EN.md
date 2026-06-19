@@ -7,16 +7,29 @@ This document serves as a visual and technical guide so that the Data Engineer u
 
 ## 🗺️ Execution Flow and Decision Making
 
-When you start the `setup.py` script in your terminal, the tool executes a linear flow divided into 4 critical steps:
+When you start the `setup.py` script in your terminal, the tool executes a linear flow divided into 6 steps:
 
 ```
-[1. Validation] ──> [2. Lake Creation] ──> [3. Compute Setup] ──> [4. Data Warehouse (opt)] ──> [5. Delivery (.env)]
+[1. Setup Name] ──> [2. Cloud + Pre-flight] ──> [3. Lake] ──> [4. Compute + DW] ──> [5. Provisioning] ──> [6. Delivery (.env)]
 ```
+
+### CLI commands and setup lifecycle
+
+Quickelt now supports named setup workspaces under `infrastructure/setups/<setup-name>/`.
+
+* `python infrastructure/setup.py` starts a new setup and writes its `.env` inside the named workspace.
+* `python infrastructure/setup.py --destroy --setup-name <name>` destroys Azure resources tracked by Terraform state in that setup workspace.
+* `python infrastructure/setup.py --clean --setup-name <name>` removes local setup files/state only (no cloud destroy).
+
+The project root `.env` remains the active profile mirror. It is updated to point to whichever setup you last activated.
 
 ### Step 1: Context Validation and Authentication
 Before requesting any data, the CLI ensures that the local environment is secure and has the necessary dependencies to interact with the chosen provider.
 
+> **Azure Prerequisite:** You must have an active Azure subscription before running the setup. If you don't have one, create a free subscription at [https://azure.microsoft.com/free](https://azure.microsoft.com/free) before proceeding. The `az login` command requires an existing subscription to authenticate successfully.
+
 * **OS Identification:** The script detects whether you are on Linux, macOS, or Windows.
+* **CLI Auto-Install:** If the required CLI tool (`aws` or `az`) is not found, the wizard prompts to install it automatically and re-runs the pre-flight check.
 * **Credential Check:** * **AWS:** Implicitly runs `aws sts get-caller-identity`. If it fails, it warns that the token has expired or that `aws configure` needs to be run.
     * **Azure:** Runs `az account show`. If the terminal is not logged in, it instructs the immediate use of `az login`.
 
@@ -37,8 +50,8 @@ The script invokes native infrastructure tools to provision low-cost, high-perfo
         * `<lake-name>/gold/` (Analytics layer / Consumption)
 
 * **On Azure (ADLS Gen2 / Blob Storage):**
-    1. Creates a Resource Group (if it doesn't exist): `az group create`
-    2. Provisions the Storage Account: `az storage account create` enabling the *Hierarchical Namespace* (essential for Big Data performance).
+    1. Creates/validates a Resource Group (`az group exists` / `az group create`).
+    2. Provisions via Terraform (default path) and enables *Hierarchical Namespace*.
     3. Creates the main Container and injects the `/bronze`, `/silver`, and `/gold` directory structure.
 
 ---
@@ -49,7 +62,7 @@ Depending on where you chose Quickelt's processing engine to run, the infrastruc
 1.  **Local Machine:** No compute infrastructure is created in the cloud. The CLI assumes you will run Python scripts locally or in your own Docker containers.
 2.  **Dedicated VM (Processing Server):**
     * **AWS (EC2):** Provisions an instance (default `t3.medium`) running Ubuntu Server via `aws ec2 run-instances`. Fires a *UserData* script at machine startup that updates packages and installs `python3-pip` and `git` automatically.
-    * **Azure (VM):** Creates a Linux virtual machine via `az vm create` and applies a custom script extension to ensure the Python environment is ready for immediate use.
+    * **Azure (VM):** Creates a Linux virtual machine via Terraform. The generated SSH private key is stored locally in the setup Terraform workspace (with `0600` permissions) and its path is exported to `.env` as `AZURE_VM_SSH_PRIVATE_KEY_PATH`.
 3.  **Serverless / PaaS (Auto Scaling):**
     * Prepares the environment mappings and permissions (IAM) required so that services like AWS Lambda/Glue or Azure Functions can read the `bronze` layer and write to `silver/gold` without exposing public keys.
 

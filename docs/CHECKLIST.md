@@ -1,98 +1,39 @@
-# ✅ Checklist de Boas Práticas do Projeto
+# Project Best Practices Checklist
 
-Este checklist organiza e orienta a manutenção da qualidade do projeto de Engenharia de Dados.
+Use this checklist to keep quality, maintainability, and operational safety high as the project evolves.
 
----
+## Structure and Organization
 
-## 📚 Estrutura e Organização
+- [x] Keep raw data isolated under `data/bronze/`.
+- [x] Keep ingestion metadata in a dedicated `metadata/` path.
+- [x] Organize ingestion templates by framework and source type.
+- [x] Keep automated tests under `infrastructure/test/` and related test paths.
+- [x] Keep reusable shared logic in utility modules.
 
-- [x] Separar `data/bronze/` para dados brutos.
-- [x] Separar `metadata/` para arquivos de metadados das ingestões.
-- [x] Criar pastas separadas `ingestion/pandas_templates/` e `ingestion/polars_templates/` para manter ingestões organizadas por tecnologia caso queira usar os dois frameworks.
-- [x] Usar `tests/` para todos os testes automatizados.
-- [x] Usar `utils/` para ferramentas auxiliares como logger.
+## Development Practices
 
----
+- [x] Use deterministic file naming conventions with source and timestamp metadata.
+- [x] Generate metadata for ingestion runs where applicable.
+- [x] Load configuration from environment variables, not hardcoded secrets.
+- [x] Ensure required directories exist before writing outputs.
+- [x] Centralize defaults/constants to avoid value drift.
 
-## 🛠️ Boas Práticas de Desenvolvimento
+## Testing Practices
 
-- [x] Nomear arquivos de dados e metadados com o padrão `{origem}_{formato}_{timestamp}`.
-- [x] Sempre gerar um arquivo de metadados (`_metadata.json`) para cada ingestão realizada.
-- [x] Usar Logger bilíngue (`utils/logger.py`) para padronizar mensagens de log.
-- [x] Carregar variáveis de ambiente a partir do `.env` (usando `python-dotenv`).
-- [x] Garantir a criação de diretórios no início dos scripts (bronze, metadata).
+- [x] Maintain automated tests for setup orchestration and provisioner behavior.
+- [x] Cover failure paths and cancellation flows, not only happy paths.
+- [x] Validate Terraform module formatting and schema correctness.
+- [x] Validate workflow configuration (`.github/CI.yml`) through linting and test assertions.
 
----
+## Security Practices
 
-## 🧪 Boas Práticas de Testes
+- [x] Do not commit real credential files.
+- [x] Restrict permission for generated credential-bearing files (`0600`).
+- [x] Prefer least-privilege cloud identities.
+- [x] Keep local development credentials separate from production credentials.
 
-- [x] Criar testes automáticos (`pytest`) para validar se arquivos de dados e metadados são gerados corretamente.
-- [x] Validar a integridade dos arquivos de metadados como JSON válido.
-- [x] Garantir ambiente limpo antes de rodar testes (via `conftest.py`).
-- [x] Carregar `.env` automaticamente para testes usando fixture de sessão no `conftest.py`.
+## Planned Improvements
 
----
-
-## 📥 Boas Práticas de Instalação e Setup
-
-- [x] Disponibilizar um `requirements.txt` claro e atualizado.
-- [x] Fornecer um `README.md` completo com:
-  - [x] Propósito do projeto
-  - [x] Como instalar
-  - [x] Status atual
-  - [x] Estrutura de diretórios
-
----
-
-## 🚀 Futuras Boas Práticas (planejado)
-
-- [ ] Criar templates de **transformação de dados** padronizados.
-
----
-
-[en]
-# ✅ Best Practices Checklist for the Project
-
-This checklist organizes and guides the maintenance of the quality of the Data Engineering project.
-
----
-
-## 📚 Structure and Organization
-
-- [x] Separate `data/bronze/` for raw data.
-- [ ] Separate `metadata/` for ingestion metadata files.
-- [ ] Create separate folders `ingestion/pandas_templates/` and `ingestion/polars_templates/` to keep ingestions organized by technology if you want to use both frameworks.
-- [ ] Use `tests/` for all automated tests.
-- [ ] Use `utils/` for auxiliary tools like logger.
-- [ ] Use `transformation/` for data transformation templates.
-
----
-
-## 🛠️ Development Best Practices
-
-- [x] Name data and metadata files with the pattern `{origin}_{format}_{timestamp}`.
-- [ ] Always generate a metadata file (`_metadata.json`) for each ingestion performed.
-- [ ] Use Bilingual Logger (`utils/logger.py`) to standardize log messages.
-- [ ] Load environment variables from `.env` (using `python-dotenv`).
-- [ ] Ensure the creation of directories at the beginning of scripts (bronze, metadata).
-
----
-
-## 🧪 Testing Best Practices
-
-- [ ] Create automated tests (`pytest`) to validate if data and metadata files are generated correctly.
-- [ ] Validate the integrity of metadata files as valid JSON.
-- [ ] Ensure a clean environment before running tests (via `conftest.py`).
-- [ ] Automatically load `.env` for tests using session fixture in `conftest.py`.
-
----
-
-## 📥 Installation and Setup Best Practices
-
-- [x] Provide a clear and updated `requirements.txt`.
-- [x] Offer a complete `README.md` with:
-  - [x] Purpose of the project
-  - [x] How to install
-  - [x] Current status
-  - [x] Directory structure
-
+- [ ] Expand runtime integration tests for Terraform destroy and cleanup edge cases.
+- [ ] Add end-to-end smoke tests for CLI setup in CI-compatible environments.
+- [ ] Add docs quality checks (link checks and markdown linting).

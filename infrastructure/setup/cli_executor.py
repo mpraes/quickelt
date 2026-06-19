@@ -13,6 +13,7 @@ Provides:
 """
 
 import enum
+import importlib
 import logging
 import re
 import subprocess
@@ -21,10 +22,32 @@ import threading
 from typing import Any
 
 from setup._backend_detect import detect_prompt_backend
+from setup._style import (
+    _NO_COLOR,
+    ACCENT,
+    BOLD,
+    BRIGHT_CYAN,
+    FAILURE,
+    MUTED,
+    R,
+    SUCCESS,
+    accent,
+    failure,
+    success,
+    s,
+)
 
 _AVAILABLE_BACKEND = detect_prompt_backend()
 
 _SPINNER_FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
+
+
+def _inquirer_module():
+    return importlib.import_module("inquirer")
+
+
+def _questionary_module():
+    return importlib.import_module("questionary")
 
 
 class ErrorCategory(enum.Enum):
@@ -133,7 +156,10 @@ class Spinner:
         idx = 0
         while not self._stop.is_set():
             frame = _SPINNER_FRAMES[idx % len(_SPINNER_FRAMES)]
-            sys.stdout.write(f"\r  {frame} {self._message}")
+            if _NO_COLOR:
+                sys.stdout.write(f"\r  {frame} {self._message}")
+            else:
+                sys.stdout.write(f"\r  {s(frame, BRIGHT_CYAN, BOLD)} {self._message}")
             sys.stdout.flush()
             idx += 1
             self._stop.wait(self._delay)
@@ -260,13 +286,15 @@ class CLIExecutor:
     def prompt_choice(self, message: str, choices: list[str]) -> str | None:
         try:
             if self._backend == "inquirer":
-                result = _inquirer.prompt([
-                    _inquirer.List("choice", message=message, choices=choices),
+                inquirer = _inquirer_module()
+                result = inquirer.prompt([
+                    inquirer.List("choice", message=message, choices=choices),
                 ])
                 return result["choice"] if result else None
 
             if self._backend == "questionary":
-                return _questionary.select(message, choices=choices).ask()
+                questionary = _questionary_module()
+                return questionary.select(message, choices=choices).ask()
 
             print(f"\n  {message}")
             for i, c in enumerate(choices, 1):
@@ -284,13 +312,15 @@ class CLIExecutor:
     def prompt_input(self, message: str, default: str = "") -> str | None:
         try:
             if self._backend == "inquirer":
-                result = _inquirer.prompt([
-                    _inquirer.Text("value", message=message, default=default),
+                inquirer = _inquirer_module()
+                result = inquirer.prompt([
+                    inquirer.Text("value", message=message, default=default),
                 ])
                 return result["value"] if result else None
 
             if self._backend == "questionary":
-                return _questionary.text(message, default=default).ask()
+                questionary = _questionary_module()
+                return questionary.text(message, default=default).ask()
 
             hint = f" [{default}]" if default else ""
             ans = input(f"  {message}{hint}: ").strip()

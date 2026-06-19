@@ -33,10 +33,20 @@ class TestEnvWriterWrite:
         compute = {"compute": "Serverless/PaaS", "bootstrap_vm": False}
         dw = {"gold_external_db": False}
 
-        env.write("Azure", storage, compute, dw)
+        env.write(
+            "Azure",
+            storage,
+            compute,
+            dw,
+            setup_name="acme-prod",
+            setup_dir="infrastructure/setups/acme-prod",
+        )
 
         content = env_path.read_text()
         assert "CLOUD_PROVIDER=Azure" in content
+        assert "SETUP_NAME=acme-prod" in content
+        assert "QUICKELT_SETUP_NAME=acme-prod" in content
+        assert "QUICKELT_SETUP_DIR=infrastructure/setups/acme-prod" in content
         assert "AZURE_STORAGE_ACCOUNT=myaccount" in content
         assert f"AZURE_RESOURCE_GROUP={_DEFAULT_RG}" in content
         assert f"AZURE_LOCATION={_DEFAULT_LOC}" in content
@@ -252,3 +262,30 @@ class TestEnvWriterWritePreservesExisting:
         content = env_path.read_text()
         assert "# My custom comment" in content
         assert "MY_VAR=123" in content
+
+
+class TestLoadSetupConfig:
+    def test_load_azure_config(self, env_path):
+        env_path.write_text(
+            "CLOUD_PROVIDER=Azure\n"
+            "AZURE_STORAGE_ACCOUNT=company-lake\n"
+            "STORAGE_LAYERS=bronze,silver\n"
+            "COMPUTE_TYPE=Serverless/PaaS\n"
+            "BOOTSTRAP_VM=false\n"
+            "PG_STRATEGY=managed_cloud\n"
+            "MANAGED_CLOUD_CHOICE=provision_new\n"
+            "DW_USERNAME=quickelt\n"
+            "DW_PASSWORD=secret\n"
+        )
+
+        env = EnvWriter(env_path)
+        cloud, storage, compute, dw = env.load_setup_config()
+
+        assert cloud == "Azure"
+        assert storage["name"] == "company-lake"
+        assert storage["layers"] == ["bronze", "silver"]
+        assert compute["compute"] == "Serverless/PaaS"
+        assert dw["gold_external_db"] is True
+        assert dw["pg_strategy"] == "managed_cloud"
+        assert dw["managed_cloud_choice"] == "provision_new"
+        assert dw["dw_password"] == "secret"
