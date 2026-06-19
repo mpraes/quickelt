@@ -51,9 +51,9 @@ from sqlalchemy import create_engine
 from datetime import datetime
 from dotenv import load_dotenv
 
-from utils.logger import setup_logger
-from utils.pydantic_validation import validate_with_pydantic_batch
-from contracts.data_contracts import CustomerDatabaseContract  # Ajuste conforme seu contrato real
+from src.utils.logger import setup_logger
+from src.utils.pydantic_validation_template_pandas import validate_with_pydantic_batch
+from src.contracts.data_contracts_template import CustomerDatabaseContract
 
 # Setup
 logger = setup_logger("database_ingestion_pandas_template")

@@ -54,9 +54,9 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from dotenv import load_dotenv
 
-from utils.logger import setup_logger
-from utils.pydantic_validation_template_polars import validate_with_pydantic_batch
-from contracts.data_contracts_template import ProductWebScrapingContract
+from src.utils.logger import setup_logger
+from src.utils.pydantic_validation_template_polars import validate_with_pydantic_batch
+from src.contracts.data_contracts_template import ArticleWebScrapingContract
 
 # Setup
 logger = setup_logger("webscraping_ingestion_polars_template")

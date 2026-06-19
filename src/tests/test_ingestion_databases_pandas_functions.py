@@ -26,7 +26,7 @@ import os
 import json
 import pandas as pd
 from sqlalchemy import create_engine
-from ingestion.pandas_templates import databases_template as ingestion
+from src.ingestion.pandas_templates import databases_template as ingestion
 
 @pytest.fixture(scope="module")
 def setup_env():

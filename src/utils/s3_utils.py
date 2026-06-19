@@ -27,9 +27,9 @@ import pyarrow as pa
 from botocore.exceptions import ClientError, NoCredentialsError
 
 # Import project logger
-from .logger import get_logger
+from src.utils.logger import setup_logger
 
-logger = get_logger(__name__)
+logger = setup_logger(__name__)
 
 # Load environment variables from .env file
 # Carrega variáveis de ambiente do arquivo .env

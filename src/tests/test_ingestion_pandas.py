@@ -53,16 +53,16 @@ def run_test_ingestion(module_import_path, expected_data_suffix):
 
 # Agora cada teste usa a função padrão
 def test_api_ingestion_pandas():
-    run_test_ingestion("ingestion.pandas_templates.api_template", ".csv")
+    run_test_ingestion("src.ingestion.pandas_templates.api_template", ".csv")
 
 def test_csv_ingestion_pandas():
-    run_test_ingestion("ingestion.pandas_templates.csv_template", ".csv")
+    run_test_ingestion("src.ingestion.pandas_templates.sharepoint_csv_template", ".csv")
 
 def test_database_ingestion_pandas():
-    run_test_ingestion("ingestion.pandas_templates.databases_template", ".csv")
+    run_test_ingestion("src.ingestion.pandas_templates.databases_template", ".csv")
 
 def test_sharepoint_ingestion_pandas():
-    run_test_ingestion("ingestion.pandas_templates.sharepoint_template", ".csv")
+    run_test_ingestion("src.ingestion.pandas_templates.sharepoint_xls_template", ".csv")
 
 def test_web_scraping_ingestion_pandas():
-    run_test_ingestion("ingestion.pandas_templates.web_scraping_template", ".csv")
+    run_test_ingestion("src.ingestion.pandas_templates.web_scraping_template", ".csv")

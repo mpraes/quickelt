@@ -165,7 +165,7 @@ QUICKELT/
   - sqlalchemy>=2.0.30
   - psycopg2-binary>=2.9.9 (PostgreSQL)
   - pymysql>=1.1.0 (MySQL)
-  - cx_Oracle>=8.3.0 (Oracle)
+  - oracledb>=2.1.0 (Oracle)
   - pyodbc>=5.0.1 (MS SQL Server)
 
 - **Integração Microsoft / Microsoft Integration**
@@ -255,19 +255,17 @@ git clone https://github.com/mpraes/quickelt.git
 cd quickelt
 ```
 
-2️⃣ **Crie e ative um ambiente virtual / Create and activate a virtual environment**
-```bash	
-python -m venv .venv
-source .venv/bin/activate      # Linux/macOS
-.venv\Scripts\activate         # Windows
+2️⃣ **Instale as dependências com uv (recomendado) / Install dependencies with uv (recommended)**
+```bash
+uv sync
 ```
 
-3️⃣ **Instale as dependências / Install dependencies**
-```bash	
-pip install -r requirements.txt
+**Ou com pip / Or with pip:**
+```bash
+uv pip install -e .
 ```
 
-4️⃣ **Configure variáveis de ambiente / Configure environment variables**
+3️⃣ **Configure variáveis de ambiente / Configure environment variables**
 
 **Opção 1: Script Interativo (Recomendado) / Interactive Script (Recommended)**
 ```bash
@@ -279,7 +277,7 @@ python setup_env.py
 cp config.env.example .env
 ```
 
-5️⃣ **Configure as variáveis críticas no arquivo .env / Configure critical variables in the .env file:**
+4️⃣ **Configure as variáveis críticas no arquivo .env / Configure critical variables in the .env file:**
 ```bash
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
@@ -299,7 +297,7 @@ AZURE_CLIENT_ID=your_client_id
 AZURE_CLIENT_SECRET=your_client_secret
 ```
 
-6️⃣ **Execute os testes automáticos / Run automatic tests**
+5️⃣ **Execute os testes automáticos / Run automatic tests**
 ```bash	
 pytest
 ```

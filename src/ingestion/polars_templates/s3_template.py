@@ -23,7 +23,7 @@ import polars as pl
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 # Import project utilities
-from utils.s3_utils import (
+from src.utils.s3_utils import (
     get_s3_client,
     list_objects,
     read_file_from_s3,
@@ -31,9 +31,9 @@ from utils.s3_utils import (
     upload_file_to_s3,
     get_s3_paths
 )
-from utils.logger import get_logger
+from src.utils.logger import setup_logger
 
-logger = get_logger(__name__)
+logger = setup_logger(__name__)
 
 
 @retry(

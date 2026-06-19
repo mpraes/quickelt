@@ -28,7 +28,7 @@ import json
 import polars as pl
 import pandas as pd
 from sqlalchemy import create_engine
-from ingestion.pandas_templates import databases_ingestion_polars as ingestion
+from src.ingestion.polars_templates import databases_template as ingestion
 
 @pytest.fixture(scope="module")
 def setup_env():

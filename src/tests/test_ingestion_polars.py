@@ -53,16 +53,16 @@ def run_test_ingestion(module_import_path, expected_data_suffix):
 
 # Agora cada teste usa a função padrão
 def test_api_ingestion_polars():
-    run_test_ingestion("ingestion.polars_templates.api_template", ".parquet")
+    run_test_ingestion("src.ingestion.polars_templates.api_template", ".parquet")
 
 def test_csv_ingestion_polars():
-    run_test_ingestion("ingestion.polars_templates.csv_template", ".parquet")
+    run_test_ingestion("src.ingestion.polars_templates.csv_template", ".parquet")
 
 def test_database_ingestion_polars():
-    run_test_ingestion("ingestion.polars_templates.databases_template", ".parquet")
+    run_test_ingestion("src.ingestion.polars_templates.databases_template", ".parquet")
 
 def test_sharepoint_ingestion_polars():
-    run_test_ingestion("ingestion.polars_templates.sharepoint_template", ".parquet")
+    run_test_ingestion("src.ingestion.polars_templates.sharepoint_xls_template", ".parquet")
 
 def test_web_scraping_ingestion_polars():
-    run_test_ingestion("ingestion.polars_templates.web_scraping_template", ".parquet")
+    run_test_ingestion("src.ingestion.polars_templates.web_scraping_template", ".parquet")

@@ -12,9 +12,9 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from dotenv import load_dotenv
 
-from utils.logger import setup_logger
-from utils.pydantic_validation import validate_with_pydantic_batch
-from contracts.data_contracts import ProductWebScrapingContract  # Ajuste conforme seu contrato real
+from src.utils.logger import setup_logger
+from src.utils.pydantic_validation_template_pandas import validate_with_pydantic_batch
+from src.contracts.data_contracts_template import ArticleWebScrapingContract
 
 # Setup
 logger = setup_logger("web_scraping_pandas_template")
